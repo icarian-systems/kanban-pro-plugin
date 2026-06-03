@@ -9,7 +9,7 @@
  *   3. Vault `modify` / `delete` / `rename` events trigger incremental
  *      updates of the affected path only — never a full rescan.
  *
- * Persistence path: `.obsidian/plugins/kanban-pro/index.json`, written via
+ * Persistence path: `<configDir>/plugins/<manifest.id>/index.json`, written via
  * the plugin's data adapter (`plugin.app.vault.adapter.write`). We
  * deliberately do NOT use `plugin.saveData()` for the index because that
  * file is reserved for settings — the index is a cache, mixing them would
@@ -21,7 +21,6 @@ import { log } from '@/shared/log';
 import { summarizeBoard } from './rebuild';
 import type { VaultIndex, VaultIndexEntry } from './types';
 
-const INDEX_PATH = '.obsidian/plugins/kanban-pro/index.json';
 const KANBAN_FRONTMATTER_KEY = 'kanban-plugin';
 const KANBAN_FRONTMATTER_VALUE = 'board';
 
@@ -75,8 +74,11 @@ function isKanbanFile(
   return fm?.[KANBAN_FRONTMATTER_KEY] === KANBAN_FRONTMATTER_VALUE;
 }
 
-async function ensureIndexDir(adapter: DataAdapterLike): Promise<void> {
-  const dir = INDEX_PATH.slice(0, INDEX_PATH.lastIndexOf('/'));
+async function ensureIndexDir(
+  adapter: DataAdapterLike,
+  indexPath: string,
+): Promise<void> {
+  const dir = indexPath.slice(0, indexPath.lastIndexOf('/'));
   try {
     if (adapter.mkdir) await adapter.mkdir(dir);
   } catch {
@@ -86,11 +88,12 @@ async function ensureIndexDir(adapter: DataAdapterLike): Promise<void> {
 
 async function readPersistedIndex(
   adapter: DataAdapterLike,
+  indexPath: string,
 ): Promise<VaultIndexEntry[]> {
   try {
-    const exists = await adapter.exists(INDEX_PATH);
+    const exists = await adapter.exists(indexPath);
     if (!exists) return [];
-    const raw = await adapter.read(INDEX_PATH);
+    const raw = await adapter.read(indexPath);
     const parsed = JSON.parse(raw) as { entries?: VaultIndexEntry[] };
     return Array.isArray(parsed.entries) ? parsed.entries : [];
   } catch (err) {
@@ -101,12 +104,13 @@ async function readPersistedIndex(
 
 async function writePersistedIndex(
   adapter: DataAdapterLike,
+  indexPath: string,
   entries: VaultIndexEntry[],
 ): Promise<void> {
   try {
-    await ensureIndexDir(adapter);
+    await ensureIndexDir(adapter, indexPath);
     await adapter.write(
-      INDEX_PATH,
+      indexPath,
       JSON.stringify({ version: 1, entries }, null, 2),
     );
   } catch (err) {
@@ -144,6 +148,12 @@ export function createVaultIndex(plugin: Plugin): VaultIndex {
     .metadataCache as unknown as MetadataCacheLike;
   const adapter = vault.adapter;
 
+  // Derive the cache path from the install folder so a manifest `id`
+  // rename can never leave the index writing to a stale directory.
+  const configDir =
+    (plugin.app.vault as { configDir?: string }).configDir ?? '.obsidian';
+  const indexPath = `${configDir}/plugins/${plugin.manifest.id}/index.json`;
+
   const data: InternalEntries = { byPath: new Map() };
   const listeners = new Set<() => void>();
   let hydrated = false;
@@ -153,13 +163,17 @@ export function createVaultIndex(plugin: Plugin): VaultIndex {
   };
 
   const persist = (): void => {
-    void writePersistedIndex(adapter, Array.from(data.byPath.values()));
+    void writePersistedIndex(
+      adapter,
+      indexPath,
+      Array.from(data.byPath.values()),
+    );
   };
 
   const hydrateFromDisk = async (): Promise<void> => {
     if (hydrated) return;
     hydrated = true;
-    const entries = await readPersistedIndex(adapter);
+    const entries = await readPersistedIndex(adapter, indexPath);
     for (const e of entries) {
       data.byPath.set(e.path, e);
     }
