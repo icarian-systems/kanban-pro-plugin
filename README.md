@@ -13,7 +13,7 @@ By [Icarian Systems](https://icariansystems.com).
 
 Kanban Pro is **free to install and use** for all free-tier features. Boards are stored entirely as local markdown in your vault — nothing is uploaded or required to use the plugin offline.
 
-Some features are **paid (Pro)** and unlocked with a license purchased from [Icarian Systems](https://icariansystems.com). The plugin makes network requests **only** in these cases:
+Some features are **paid (Pro)** and unlocked with a license purchased from the [Kanban Pro checkout](https://icarian-systems.lemonsqueezy.com/checkout/buy/d404fb1f-3961-4a3a-9715-8eb4d784fa5e). **Limited time: $5.99 for lifetime access.** The plugin makes network requests **only** in these cases:
 
 - **Purchasing / activating a license** — exchanging a purchased key for a signed token, and periodic re-validation and revocation checks against the Icarian Systems licensing service. License verification itself runs offline against bundled public keys; the network is only used to obtain and refresh the token.
 - **Optional integrations you explicitly enable** — e.g. calendar export and (planned) GitHub sync. These are off by default and only contact a service when you turn them on and authenticate.
