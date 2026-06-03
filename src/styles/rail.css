@@ -1,0 +1,261 @@
+/* ============================================================
+   Kanban Pro — Right Rail
+   ============================================================
+   Inside-leaf companion panel rendered by `<RightRail />`.
+   Sections: Saved Views, Active Timer, Linked Notes, Integrations.
+   ============================================================ */
+
+.kp-rail {
+  --kp-rail-width: 260px;
+  background: var(--kp-bg-secondary);
+  border-left: 1px solid var(--kp-border);
+  padding: var(--kp-space-3) var(--kp-space-3);
+  font-size: var(--kp-text-md);
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 100%;
+  min-height: 0;
+  color: var(--kp-text);
+}
+
+.kp-rail-section {
+  margin-bottom: var(--kp-space-5);
+}
+
+.kp-rail-h {
+  font-size: var(--kp-text-xs);
+  color: var(--kp-text-faint);
+  padding: var(--kp-space-1) var(--kp-space-2) var(--kp-space-2);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: var(--kp-weight-medium);
+}
+
+.kp-rail-empty {
+  padding: var(--kp-space-1) var(--kp-space-2);
+  font-size: var(--kp-text-sm);
+  color: var(--kp-text-faint);
+}
+
+/* ============================================================
+   Saved Views — button list
+   ============================================================ */
+.kp-saved-view {
+  appearance: none;
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+  padding: 5px var(--kp-space-2);
+  font-size: var(--kp-text-sm);
+  font-family: inherit;
+  color: var(--kp-text-muted);
+  cursor: pointer;
+  border-radius: var(--kp-radius-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--kp-space-2);
+  transition:
+    background var(--kp-duration-fast) var(--kp-easing),
+    color var(--kp-duration-fast) var(--kp-easing);
+  line-height: 1.4;
+}
+
+.kp-saved-view:hover {
+  background: var(--kp-bg-hover);
+  color: var(--kp-text);
+}
+
+.kp-saved-view.is-active {
+  background: var(--kp-accent-soft);
+  color: var(--kp-accent);
+  font-weight: var(--kp-weight-medium);
+}
+
+.kp-saved-view svg {
+  width: 12px;
+  height: 12px;
+  color: var(--kp-text-faint);
+  flex-shrink: 0;
+}
+
+.kp-saved-view.is-active svg { color: var(--kp-accent); }
+
+.kp-saved-view__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+/* C-11 — numeric count chip on each pre-seeded saved view. Mirrors the
+   `.saved-view .ct` rule in docs/mockup.html: monospace, faint, pushed
+   to the right edge by the flex layout above. Re-tinted to the accent
+   when the row is active for visual consistency with the icon. */
+.kp-saved-view__count {
+  font-family: var(--kp-font-mono, ui-monospace, 'JetBrains Mono', SFMono-Regular, monospace);
+  font-size: 10.5px;
+  color: var(--kp-text-faint);
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.kp-saved-view.is-active .kp-saved-view__count { color: var(--kp-accent); }
+
+/* ============================================================
+   Active Timer card
+   ============================================================ */
+.kp-timer-card {
+  padding: var(--kp-space-3) var(--kp-space-3);
+  background: var(--kp-bg);
+  border: 1px solid var(--kp-border);
+  border-radius: var(--kp-radius);
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-2);
+}
+
+.kp-timer-card__title {
+  font-size: var(--kp-text-sm);
+  font-weight: var(--kp-weight-medium);
+  color: var(--kp-text);
+  word-break: break-word;
+}
+
+.kp-timer-card__sub {
+  font-family: var(--kp-font-mono);
+  font-size: var(--kp-text-xs);
+  color: var(--kp-text-muted);
+}
+
+.kp-timer-card__sub strong {
+  color: var(--kp-red);
+  font-weight: var(--kp-weight-medium);
+}
+
+.kp-timer-card.kp-timer-card--empty .kp-timer-card__title {
+  color: var(--kp-text-muted);
+  font-weight: var(--kp-weight-regular);
+}
+
+.kp-timer-card.kp-timer-card--empty .kp-timer-card__sub {
+  font-family: inherit;
+  color: var(--kp-text-faint);
+}
+
+.kp-timer-card__actions {
+  display: flex;
+  gap: var(--kp-space-1);
+  margin-top: var(--kp-space-1);
+}
+
+.kp-timer-card__btn {
+  flex: 1;
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--kp-border);
+  padding: 4px var(--kp-space-2);
+  font-size: var(--kp-text-xs);
+  color: var(--kp-text-muted);
+  cursor: pointer;
+  border-radius: var(--kp-radius-xs);
+  font-family: inherit;
+  transition:
+    background var(--kp-duration-fast) var(--kp-easing),
+    color var(--kp-duration-fast) var(--kp-easing),
+    border-color var(--kp-duration-fast) var(--kp-easing);
+}
+
+.kp-timer-card__btn:hover {
+  background: var(--kp-bg-hover);
+  color: var(--kp-text);
+  border-color: var(--kp-border-focus);
+}
+
+.kp-timer-card__btn.is-primary {
+  color: var(--kp-accent-fg);
+  background: var(--kp-accent);
+  border-color: var(--kp-accent);
+}
+
+.kp-timer-card__btn.is-primary:hover {
+  background: var(--kp-accent-hover);
+  border-color: var(--kp-accent-hover);
+  color: var(--kp-accent-fg);
+}
+
+/* ============================================================
+   Linked Notes
+   ============================================================ */
+.kp-backlink {
+  appearance: none;
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+  padding: 5px var(--kp-space-2);
+  font-size: var(--kp-text-sm);
+  font-family: inherit;
+  color: var(--kp-accent);
+  cursor: pointer;
+  border-radius: var(--kp-radius-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--kp-space-2);
+  transition: background var(--kp-duration-fast) var(--kp-easing);
+}
+
+.kp-backlink:hover {
+  background: var(--kp-bg-hover);
+}
+
+.kp-backlink .kp-lk-ico {
+  color: var(--kp-text-faint);
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+.kp-backlink__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ============================================================
+   Integrations rows
+   ============================================================ */
+.kp-integration-row {
+  display: flex;
+  align-items: center;
+  gap: var(--kp-space-2);
+  padding: 5px var(--kp-space-2);
+  font-size: var(--kp-text-sm);
+  color: var(--kp-text-muted);
+  border-radius: var(--kp-radius-sm);
+}
+
+.kp-integration-row:hover { background: var(--kp-bg-hover); }
+
+.kp-integration-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--kp-radius-full);
+  flex-shrink: 0;
+  background: var(--kp-text-faint);
+}
+
+.kp-integration-dot.is-ok      { background: var(--kp-green); }
+.kp-integration-dot.is-pending { background: var(--kp-text-faint); }
+
+.kp-integration-row__label { flex: 1; min-width: 0; }
+
+.kp-integration-row__time {
+  margin-left: auto;
+  font-family: var(--kp-font-mono);
+  font-size: 10.5px;
+  color: var(--kp-text-faint);
+  flex-shrink: 0;
+}

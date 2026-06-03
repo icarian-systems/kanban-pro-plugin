@@ -1,0 +1,16 @@
+node_modules/
+main.js
+main.js.map
+.DS_Store
+*.log
+coverage/
+dist/
+.vscode/
+.idea/
+*.tsbuildinfo
+.env
+.env.local
+
+# build / bench artifacts — regenerated on each run
+bench-results.json
+src/__tests__/fixtures/big.md

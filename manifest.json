@@ -1,0 +1,11 @@
+{
+  "id": "kanban-pro",
+  "name": "Kanban Pro",
+  "version": "1.0.1",
+  "minAppVersion": "1.6.0",
+  "description": "Local-first Kanban / project boards. Reads and writes the same on-disk board format used by the community Kanban plugin. Includes optional paid Pro features.",
+  "author": "Icarian Systems",
+  "authorUrl": "https://icariansystems.com",
+  "fundingUrl": "https://icariansystems.com",
+  "isDesktopOnly": false
+}

@@ -1,0 +1,396 @@
+/* ============================================================
+   Kanban Pro — Alternate view modes
+   ============================================================
+   TableRoot, ListRoot, DashboardView. All three are free in v1.
+   Dashboard is a light scaffold here — v1.1 will flesh it out.
+   ============================================================ */
+
+/* ============================================================
+   TABLE VIEW
+   ============================================================ */
+.kp-table-root {
+  padding:
+    var(--kp-board-padding-y)
+    var(--kp-board-padding-x)
+    var(--kp-space-8);
+  min-width: 0;
+}
+
+.kp-table-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--kp-space-2);
+  margin-bottom: var(--kp-space-4);
+  flex-wrap: wrap;
+}
+
+.kp-table-toolbar .kp-spacer { flex: 1; }
+
+.kp-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--kp-text-md);
+  color: var(--kp-text);
+  background: var(--kp-bg);
+  border: 1px solid var(--kp-border);
+  border-radius: var(--kp-radius);
+  overflow: hidden;
+}
+
+.kp-table thead {
+  background: var(--kp-bg-secondary);
+}
+
+.kp-table th {
+  text-align: left;
+  font-size: var(--kp-text-xs);
+  font-weight: var(--kp-weight-medium);
+  color: var(--kp-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: var(--kp-space-2) var(--kp-space-3);
+  border-bottom: 1px solid var(--kp-border);
+  position: sticky;
+  top: 0;
+  background: var(--kp-bg-secondary);
+  z-index: var(--kp-z-sticky);
+  user-select: none;
+  white-space: nowrap;
+}
+
+.kp-table th.is-sortable {
+  cursor: pointer;
+}
+
+.kp-table th.is-sortable:hover {
+  color: var(--kp-text);
+  background: var(--kp-bg-hover);
+}
+
+.kp-table th .kp-sort-ind {
+  display: inline-block;
+  margin-left: var(--kp-space-1);
+  color: var(--kp-text-faint);
+  font-size: 10px;
+  vertical-align: middle;
+}
+
+.kp-table th.is-sorted-asc .kp-sort-ind,
+.kp-table th.is-sorted-desc .kp-sort-ind {
+  color: var(--kp-accent);
+}
+
+.kp-table td {
+  padding: var(--kp-space-2) var(--kp-space-3);
+  border-bottom: 1px solid var(--kp-border);
+  vertical-align: middle;
+  font-size: var(--kp-text-md);
+  line-height: 1.4;
+}
+
+.kp-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.kp-table tbody tr {
+  transition: background var(--kp-duration-fast) var(--kp-easing);
+}
+
+.kp-table tbody tr:hover {
+  background: var(--kp-bg-hover);
+}
+
+.kp-table tbody tr.is-selected {
+  background: var(--kp-accent-soft);
+}
+
+.kp-table tbody tr.is-done .kp-table-cell-title {
+  color: var(--kp-text-muted);
+  text-decoration: line-through;
+  text-decoration-color: var(--kp-border-strong);
+}
+
+.kp-table-cell-title {
+  font-weight: var(--kp-weight-medium);
+  color: var(--kp-text);
+}
+
+.kp-table-cell-lane {
+  font-size: var(--kp-text-xs);
+  color: var(--kp-text-muted);
+  background: var(--kp-bg-tertiary);
+  padding: 2px 6px;
+  border-radius: var(--kp-radius-xs);
+  display: inline-block;
+}
+
+.kp-table-cell-meta {
+  display: flex;
+  gap: var(--kp-space-2);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Inline editor inside table row */
+.kp-table td .kp-inline-editor-host {
+  font-size: var(--kp-text-md);
+}
+
+/* ============================================================
+   L6 — Status toggle button in the table's Status column
+   ============================================================
+   The toggle reads as a real pill button. "Open" is the neutral
+   (default) state; "Done" adds the accent-soft tint to make it
+   read as a positive action. Keyboard focus uses the standard
+   focus ring. */
+.kp-status-toggle {
+  appearance: none;
+  background: var(--kp-bg-tertiary);
+  border: 1px solid var(--kp-border);
+  color: var(--kp-text);
+  font-size: var(--kp-text-xs);
+  font-weight: var(--kp-weight-medium);
+  padding: 2px 8px;
+  border-radius: var(--kp-radius-pill, 999px);
+  cursor: pointer;
+  transition:
+    background var(--kp-duration-fast) var(--kp-easing),
+    border-color var(--kp-duration-fast) var(--kp-easing),
+    color var(--kp-duration-fast) var(--kp-easing);
+}
+
+.kp-status-toggle:hover {
+  background: var(--kp-bg-hover);
+  border-color: var(--kp-border-strong);
+}
+
+.kp-status-toggle:focus-visible {
+  outline: 2px solid var(--kp-accent-border);
+  outline-offset: 2px;
+}
+
+.kp-status-toggle.is-done {
+  background: var(--kp-green-soft);
+  border-color: var(--kp-green-border);
+  color: var(--kp-green);
+}
+
+.kp-status-toggle:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+/* ============================================================
+   LIST VIEW — grouped by lane, compact
+   ============================================================ */
+.kp-list-root {
+  padding:
+    var(--kp-board-padding-y)
+    var(--kp-board-padding-x)
+    var(--kp-space-8);
+}
+
+.kp-list-group {
+  margin-bottom: var(--kp-space-5);
+}
+
+.kp-list-group-head {
+  display: flex;
+  align-items: center;
+  gap: var(--kp-space-2);
+  padding: var(--kp-space-2) 0;
+  border-bottom: 1px solid var(--kp-border);
+  margin-bottom: var(--kp-space-2);
+}
+
+.kp-list-group-title {
+  font-size: var(--kp-text-md);
+  font-weight: var(--kp-weight-semi);
+  color: var(--kp-text);
+  margin: 0;
+}
+
+.kp-list-group-count {
+  font-family: var(--kp-font-mono);
+  font-size: var(--kp-text-xs);
+  color: var(--kp-text-faint);
+}
+
+.kp-list-group .kp-spacer { flex: 1; }
+
+.kp-list-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.kp-list-row {
+  display: grid;
+  grid-template-columns: 14px 1fr auto;
+  gap: var(--kp-space-3);
+  align-items: center;
+  padding: 6px var(--kp-space-2) 6px 0;
+  border-bottom: 1px solid var(--kp-border);
+  font-size: var(--kp-text-md);
+  color: var(--kp-text);
+  cursor: pointer;
+  transition: background var(--kp-duration-fast) var(--kp-easing);
+}
+
+.kp-list-row:hover {
+  background: var(--kp-bg-hover);
+}
+
+.kp-list-row:last-child {
+  border-bottom: none;
+}
+
+.kp-list-row .kp-check {
+  margin-left: var(--kp-space-2);
+}
+
+.kp-list-row-title {
+  font-weight: var(--kp-weight-regular);
+  color: var(--kp-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kp-list-row.is-done .kp-list-row-title {
+  color: var(--kp-text-muted);
+  text-decoration: line-through;
+  text-decoration-color: var(--kp-border-strong);
+}
+
+.kp-list-row-meta {
+  display: flex;
+  gap: var(--kp-space-2);
+  align-items: center;
+  color: var(--kp-text-muted);
+  font-size: var(--kp-text-sm);
+}
+
+/* ============================================================
+   DASHBOARD VIEW — v1.1 light scaffold
+   ============================================================ */
+.kp-dashboard {
+  padding:
+    var(--kp-board-padding-y)
+    var(--kp-board-padding-x)
+    var(--kp-space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-5);
+}
+
+.kp-dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--kp-space-4);
+}
+
+.kp-dashboard-tile {
+  background: var(--kp-bg);
+  border: 1px solid var(--kp-border);
+  border-radius: var(--kp-radius);
+  padding: var(--kp-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-2);
+  min-height: 120px;
+  transition:
+    border-color var(--kp-duration-fast) var(--kp-easing),
+    box-shadow var(--kp-duration-fast) var(--kp-easing);
+}
+
+.kp-dashboard-tile:hover {
+  border-color: var(--kp-border-strong);
+  box-shadow: var(--kp-shadow-card-hover);
+}
+
+.kp-dashboard-tile-h {
+  font-size: var(--kp-text-xs);
+  color: var(--kp-text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: var(--kp-weight-medium);
+  margin: 0;
+}
+
+.kp-dashboard-tile-value {
+  font-family: var(--kp-font-mono);
+  font-size: var(--kp-text-3xl);
+  font-weight: var(--kp-weight-semi);
+  color: var(--kp-text);
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+.kp-dashboard-tile-subtitle {
+  font-size: var(--kp-text-sm);
+  color: var(--kp-text-muted);
+  margin: 0;
+}
+
+.kp-dashboard-tile-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--kp-text-xs);
+  font-family: var(--kp-font-mono);
+  color: var(--kp-text-muted);
+}
+
+.kp-dashboard-tile-trend.is-up    { color: var(--kp-green); }
+.kp-dashboard-tile-trend.is-down  { color: var(--kp-red); }
+
+.kp-dashboard-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-3);
+}
+
+.kp-dashboard-section-h {
+  font-size: var(--kp-text-lg);
+  font-weight: var(--kp-weight-semi);
+  color: var(--kp-text);
+  margin: 0;
+  letter-spacing: -0.005em;
+}
+
+.kp-dashboard-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-1);
+}
+
+.kp-dashboard-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--kp-space-2);
+  padding: 6px var(--kp-space-2);
+  border-radius: var(--kp-radius-sm);
+  font-size: var(--kp-text-md);
+  color: var(--kp-text-muted);
+  cursor: pointer;
+}
+
+.kp-dashboard-list li:hover {
+  background: var(--kp-bg-hover);
+  color: var(--kp-text);
+}
+
+.kp-dashboard-list li .kp-spacer { flex: 1; }
+
+.kp-dashboard-list li .kp-ct {
+  font-family: var(--kp-font-mono);
+  font-size: var(--kp-text-xs);
+  color: var(--kp-text-faint);
+}

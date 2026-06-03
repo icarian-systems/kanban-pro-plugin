@@ -1,0 +1,350 @@
+/* ============================================================
+   Kanban Pro — Banners, toasts, empty/loading states
+   ============================================================
+   - Read-only banner: non-dismissable, surfaces when save fails
+     or content-hash mismatch is detected (Sync recovery).
+   - Sync-recovery banner: surfaces the diff/conflict choice.
+   - Parse-error toast: transient, dismissable.
+   - Empty / loading / skeleton states.
+
+   Rule: never silence errors. Visibility > tidiness.
+   ============================================================ */
+
+/* ============================================================
+   Shared banner shell
+   ============================================================ */
+.kp-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--kp-space-3);
+  padding: var(--kp-space-3) var(--kp-space-4);
+  font-size: var(--kp-text-sm);
+  border-radius: var(--kp-radius);
+  border: 1px solid transparent;
+  line-height: var(--kp-leading-normal);
+}
+
+.kp-banner-icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+}
+
+.kp-banner-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.kp-banner-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.kp-banner-title {
+  font-weight: var(--kp-weight-semi);
+  margin: 0;
+  font-size: var(--kp-text-sm);
+}
+
+.kp-banner-message {
+  margin: 0;
+  font-size: var(--kp-text-sm);
+}
+
+.kp-banner-actions {
+  display: flex;
+  gap: var(--kp-space-2);
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.kp-banner-action {
+  appearance: none;
+  background: transparent;
+  border: 1px solid currentColor;
+  color: inherit;
+  font-family: inherit;
+  font-size: var(--kp-text-xs);
+  font-weight: var(--kp-weight-medium);
+  padding: 3px var(--kp-space-2);
+  border-radius: var(--kp-radius-sm);
+  cursor: pointer;
+  transition: background var(--kp-duration-fast) var(--kp-easing);
+}
+
+.kp-banner-action:hover {
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+.kp-banner-dismiss {
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: var(--kp-radius-xs);
+  opacity: 0.6;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.kp-banner-dismiss:hover { opacity: 1; }
+
+/* ============================================================
+   Banner variants
+   ============================================================ */
+.kp-banner.is-error,
+.kp-banner.is-read-only {
+  color: var(--kp-red);
+  background: var(--kp-red-soft);
+  border-color: var(--kp-red-border);
+}
+
+.kp-banner.is-warning,
+.kp-banner.is-sync-recovery {
+  color: var(--kp-amber);
+  background: var(--kp-amber-soft);
+  border-color: var(--kp-amber-border);
+}
+
+.kp-banner.is-info {
+  color: var(--kp-accent);
+  background: var(--kp-accent-soft);
+  border-color: var(--kp-accent-border);
+}
+
+.kp-banner.is-success {
+  color: var(--kp-green);
+  background: var(--kp-green-soft);
+  border-color: var(--kp-green-border);
+}
+
+/* Banners that sit above the board content */
+.kp-banner-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-2);
+  padding: var(--kp-space-3) var(--kp-board-padding-x) 0;
+  z-index: var(--kp-z-banner);
+}
+
+/* Sticky read-only banner — never dismissable */
+.kp-banner.is-read-only .kp-banner-dismiss {
+  display: none;
+}
+
+/* ============================================================
+   Toast container — bottom-right, transient
+   ============================================================ */
+.kp-toasts {
+  position: fixed;
+  bottom: var(--kp-space-5);
+  right: var(--kp-space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-2);
+  z-index: var(--kp-z-toast);
+  pointer-events: none;
+  max-width: 380px;
+}
+
+.kp-toast {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--kp-space-3);
+  padding: var(--kp-space-3) var(--kp-space-4);
+  background: var(--kp-bg);
+  border: 1px solid var(--kp-border);
+  border-radius: var(--kp-radius);
+  box-shadow: var(--kp-shadow-floating);
+  font-size: var(--kp-text-sm);
+  color: var(--kp-text);
+  pointer-events: auto;
+  animation: kp-toast-in var(--kp-duration-slow) var(--kp-easing) both;
+  min-width: 240px;
+}
+
+@keyframes kp-toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.kp-toast.is-exiting {
+  animation: kp-toast-out var(--kp-duration-base) var(--kp-easing) both;
+}
+
+@keyframes kp-toast-out {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(6px); }
+}
+
+.kp-toast.is-error {
+  border-color: var(--kp-red-border);
+  color: var(--kp-red);
+}
+
+.kp-toast.is-warning {
+  border-color: var(--kp-amber-border);
+  color: var(--kp-amber);
+}
+
+.kp-toast.is-success {
+  border-color: var(--kp-green-border);
+  color: var(--kp-green);
+}
+
+.kp-toast-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.kp-toast-title {
+  font-weight: var(--kp-weight-semi);
+  margin: 0 0 2px;
+}
+
+.kp-toast-message {
+  margin: 0;
+  color: var(--kp-text-muted);
+  font-size: var(--kp-text-xs);
+}
+
+.kp-toast.is-error .kp-toast-message,
+.kp-toast.is-warning .kp-toast-message,
+.kp-toast.is-success .kp-toast-message {
+  color: inherit;
+  opacity: 0.85;
+}
+
+/* ============================================================
+   Parse-error context — small inline marker on the board chrome
+   when a card couldn't be parsed but the rest succeeded.
+   ============================================================ */
+.kp-parse-error-marker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--kp-space-1);
+  font-size: var(--kp-text-xs);
+  color: var(--kp-red);
+  padding: 2px 6px;
+  background: var(--kp-red-soft);
+  border: 1px solid var(--kp-red-border);
+  border-radius: var(--kp-radius-xs);
+  font-family: var(--kp-font-mono);
+}
+
+/* ============================================================
+   Empty state
+   ============================================================ */
+.kp-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--kp-space-8) var(--kp-space-5);
+  color: var(--kp-text-muted);
+  gap: var(--kp-space-3);
+  min-height: 240px;
+}
+
+.kp-empty-icon {
+  color: var(--kp-text-faint);
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kp-empty-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.kp-empty-title {
+  font-size: var(--kp-text-lg);
+  font-weight: var(--kp-weight-semi);
+  color: var(--kp-text);
+  margin: 0;
+}
+
+.kp-empty-message {
+  margin: 0;
+  max-width: 360px;
+  font-size: var(--kp-text-sm);
+}
+
+/* ============================================================
+   Loading / skeleton
+   ============================================================ */
+.kp-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--kp-space-7);
+  color: var(--kp-text-faint);
+  font-size: var(--kp-text-sm);
+  gap: var(--kp-space-2);
+}
+
+.kp-spinner {
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--kp-border-strong);
+  border-top-color: var(--kp-accent);
+  border-radius: var(--kp-radius-full);
+  animation: kp-spin 0.8s linear infinite;
+}
+
+@keyframes kp-spin {
+  to { transform: rotate(360deg); }
+}
+
+.kp-skeleton {
+  display: block;
+  height: 12px;
+  background: var(--kp-bg-tertiary);
+  border-radius: var(--kp-radius-xs);
+  position: relative;
+  overflow: hidden;
+}
+
+.kp-skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--background-modifier-hover) 60%, transparent) 50%,
+    transparent 100%
+  );
+  animation: kp-skeleton-shimmer 1.4s linear infinite;
+}
+
+@keyframes kp-skeleton-shimmer {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(100%); }
+}
+
+.kp-skeleton-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-2);
+  padding: var(--kp-space-3);
+  border: 1px solid var(--kp-border);
+  border-radius: var(--kp-radius);
+}
+
+.kp-skeleton-card .kp-skeleton:nth-child(1) { width: 70%; height: 14px; }
+.kp-skeleton-card .kp-skeleton:nth-child(2) { width: 100%; }
+.kp-skeleton-card .kp-skeleton:nth-child(3) { width: 40%; }

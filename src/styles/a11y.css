@@ -1,0 +1,223 @@
+/* ============================================================
+   Kanban Pro — Accessibility layer
+   ============================================================
+   - Focus-visible rings (keyboard nav)
+   - Reduced-motion overrides
+   - High-contrast tweaks (complements tokens.css)
+   - Screen-reader utilities
+   ============================================================ */
+
+/* ============================================================
+   Visually hidden — for SR-only labels (e.g. "Add card to Backlog")
+   ============================================================ */
+.kp-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ============================================================
+   Focus-visible rings
+   ------------------------------------------------------------
+   Always-visible mouse focus is noisy; keyboard focus must
+   be unambiguous. We target :focus-visible on every
+   interactive Kanban surface.
+   ============================================================ */
+.kp-root :focus {
+  outline: none;
+}
+
+.kp-root :focus-visible {
+  outline: none;
+  box-shadow: var(--kp-focus-ring);
+  border-radius: var(--kp-radius-sm);
+}
+
+/* Surfaces that already have a border get a slightly stronger ring */
+.kp-card:focus-visible,
+.kp-add-card:focus-visible,
+.kp-add-lane:focus-visible,
+.kp-control:focus-visible,
+.kp-view-tab:focus-visible,
+.kp-settings-tab:focus-visible,
+.kp-paywall-cta:focus-visible,
+.kp-paywall-link:focus-visible,
+.kp-input:focus-visible,
+.kp-toggle:focus-visible,
+.kp-ic:focus-visible,
+.kp-detail-close:focus-visible {
+  box-shadow: var(--kp-focus-ring);
+  outline: none;
+}
+
+/* F18 — make the focus state on view-mode tabs unambiguously visible.
+   The active tab already has a tinted background; the focus ring sits
+   above the chrome so keyboard users always see where they are. */
+.kp-view-tab:focus-visible {
+  outline: 2px solid var(--color-accent, var(--interactive-accent));
+  outline-offset: 2px;
+}
+
+/* Same treatment for the primary affordances called out in QA F18. */
+.kp-add-card:focus-visible,
+.kp-add-lane:focus-visible {
+  outline: 2px solid var(--color-accent, var(--interactive-accent));
+  outline-offset: 2px;
+}
+
+/* Keyboard-active card — same as :focus-visible but persistent
+   while the keyboard-DnD operation is in flight (dnd-kit drives this). */
+.kp-card.is-kbd-active {
+  border-color: var(--kp-accent);
+  box-shadow: var(--kp-focus-ring-strong);
+  outline: none;
+}
+
+/* When dnd-kit announces drag-and-drop start, the live-region
+   becomes important. Tooltips should not eat keyboard focus. */
+.kp-dnd-announcement {
+  position: absolute;
+  left: -10000px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* ============================================================
+   Reduced motion — drop entrance animations, keep states
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .kp-root *,
+  .kp-root *::before,
+  .kp-root *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Keep the timer pulse — but slow it to a near-static blink so the
+     "active" affordance still communicates state without strobing. */
+  .kp-timer .kp-pulse {
+    animation: none;
+    opacity: 0.8;
+  }
+
+  /* The drop indicator should still be visible but stop pulsing. */
+  .kp-drop-indicator::before {
+    animation: none;
+  }
+}
+
+/* ============================================================
+   High-contrast — extra emphasis on borders / focus
+   ============================================================ */
+@media (prefers-contrast: more) {
+  .kp-card,
+  .kp-table,
+  .kp-paywall,
+  .kp-banner,
+  .kp-toast,
+  .kp-detail-panel,
+  .kp-activation {
+    border-width: 2px;
+  }
+
+  .kp-due,
+  .kp-tag,
+  .kp-timer,
+  .kp-ico-flag {
+    outline: 1px solid currentColor;
+    outline-offset: -1px;
+  }
+
+  .kp-root :focus-visible {
+    box-shadow: var(--kp-focus-ring-strong);
+  }
+}
+
+/* ============================================================
+   Forced-colors (Windows high contrast)
+   ============================================================ */
+@media (forced-colors: active) {
+  .kp-card,
+  .kp-add-card,
+  .kp-add-lane,
+  .kp-control,
+  .kp-view-tab,
+  .kp-paywall,
+  .kp-banner,
+  .kp-toast,
+  .kp-detail-panel,
+  .kp-activation,
+  .kp-input,
+  .kp-toggle {
+    border: 1px solid CanvasText;
+  }
+
+  .kp-tag,
+  .kp-due,
+  .kp-timer,
+  .kp-ico-flag {
+    border: 1px solid CanvasText;
+    background: Canvas;
+    color: CanvasText;
+    forced-color-adjust: none;
+  }
+
+  .kp-card:focus-visible,
+  .kp-control:focus-visible,
+  .kp-view-tab:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+    box-shadow: none;
+  }
+}
+
+/* ============================================================
+   Keyboard navigation helpers
+   ============================================================ */
+/* Make the dnd-kit "keyboard drag" visible — when the user
+   has grabbed a card with Space and is moving with arrows. */
+.kp-card[aria-grabbed="true"],
+.kp-card.is-grabbed {
+  outline: 2px dashed var(--kp-accent);
+  outline-offset: 2px;
+}
+
+/* Provide a clear focus ring on contentEditable surfaces */
+[contenteditable]:focus-visible {
+  outline: none;
+  box-shadow: var(--kp-focus-ring);
+  border-radius: var(--kp-radius-sm);
+}
+
+/* Skip-link (rendered hidden until focused) — for keyboard users
+   navigating into the board from the Obsidian chrome. */
+.kp-skip-link {
+  position: absolute;
+  left: var(--kp-space-2);
+  top: var(--kp-space-2);
+  transform: translateY(-200%);
+  background: var(--kp-bg);
+  color: var(--kp-text);
+  border: 1px solid var(--kp-border-strong);
+  padding: 6px var(--kp-space-3);
+  border-radius: var(--kp-radius-sm);
+  font-size: var(--kp-text-sm);
+  text-decoration: none;
+  z-index: var(--kp-z-toast);
+  transition: transform var(--kp-duration-fast) var(--kp-easing);
+}
+
+.kp-skip-link:focus-visible {
+  transform: translateY(0);
+  box-shadow: var(--kp-focus-ring);
+}

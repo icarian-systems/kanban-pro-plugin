@@ -1,0 +1,826 @@
+/* ============================================================
+   Kanban Pro — Board chrome
+   ============================================================
+   Masthead, subnav, view tabs, controls, lanes container.
+   Card / lane styles live in lane.css / card.css.
+   ============================================================ */
+
+.kp-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--kp-bg);
+  color: var(--kp-text);
+  font-family: var(--kp-font-ui);
+  font-size: var(--kp-text-md);
+  line-height: var(--kp-leading-normal);
+}
+
+.kp-board-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-x: auto;
+  overflow-y: auto;
+  background: var(--kp-bg);
+}
+
+.kp-board {
+  padding:
+    var(--kp-board-padding-y)
+    var(--kp-board-padding-x)
+    var(--kp-space-8);
+  min-width: max-content;
+}
+
+/* ============================================================
+   Masthead
+   ============================================================ */
+.kp-masthead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--kp-space-6);
+  padding-bottom: var(--kp-space-5);
+  border-bottom: 1px solid var(--kp-border);
+  margin-bottom: var(--kp-space-5);
+  animation: kp-fade-in var(--kp-duration-rise) var(--kp-easing) both;
+}
+
+.kp-masthead-left {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-2);
+  min-width: 0;
+}
+
+.kp-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--kp-space-2);
+  font-size: var(--kp-text-sm);
+  color: var(--kp-text-muted);
+  flex-wrap: wrap;
+}
+
+.kp-breadcrumb .kp-chev {
+  color: var(--kp-text-faint);
+  font-size: var(--kp-text-sm);
+}
+
+.kp-pro-tag {
+  font-family: var(--kp-font-mono);
+  font-size: 10px;
+  font-weight: var(--kp-weight-medium);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--kp-accent);
+  padding: 2px 6px;
+  border: 1px solid var(--kp-accent-border);
+  border-radius: var(--kp-radius-xs);
+  margin-left: var(--kp-space-1);
+  line-height: 1;
+}
+
+.kp-board-title {
+  font-size: var(--kp-text-3xl);
+  font-weight: var(--kp-weight-semi);
+  letter-spacing: -0.01em;
+  color: var(--kp-text);
+  margin: 0;
+  line-height: var(--kp-leading-tight);
+  word-break: break-word;
+}
+
+.kp-board-title[contenteditable="true"] {
+  outline: none;
+  border-radius: var(--kp-radius-sm);
+  padding: 0 4px;
+  margin: 0 -4px;
+}
+
+.kp-board-title[contenteditable="true"]:focus-visible {
+  background: var(--kp-bg-hover);
+  box-shadow: var(--kp-focus-ring);
+}
+
+.kp-masthead-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--kp-space-1);
+  font-size: var(--kp-text-sm);
+  color: var(--kp-text-muted);
+  flex-shrink: 0;
+}
+
+.kp-masthead-meta .kp-row {
+  display: flex;
+  gap: var(--kp-space-3);
+  align-items: center;
+}
+
+.kp-masthead-meta strong {
+  color: var(--kp-text);
+  font-weight: var(--kp-weight-medium);
+}
+
+.kp-masthead-meta .kp-dot {
+  width: 3px;
+  height: 3px;
+  background: var(--kp-text-faint);
+  border-radius: var(--kp-radius-full);
+}
+
+/* ============================================================
+   Subnav
+   ============================================================ */
+.kp-subnav {
+  display: flex;
+  align-items: center;
+  gap: var(--kp-space-1);
+  margin-bottom: var(--kp-space-5);
+  flex-wrap: wrap;
+  animation: kp-fade-in var(--kp-duration-rise) var(--kp-easing) both;
+  animation-delay: 50ms;
+  /* W2.6 — establish a stacking context above the Table view's sticky
+     thead. Without this the FilterPopover (which is absolutely
+     positioned inside the subnav) lives in a parent stacking context
+     that the sticky table header can overlap; its inner z-index can't
+     escape that context. */
+  position: relative;
+  z-index: var(--kp-z-popover);
+}
+
+.kp-view-tabs {
+  display: flex;
+  gap: 2px;
+}
+
+.kp-view-tab {
+  appearance: none;
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 5px var(--kp-space-3);
+  font-size: var(--kp-text-sm);
+  font-weight: var(--kp-weight-medium);
+  color: var(--kp-text-muted);
+  cursor: pointer;
+  border-radius: var(--kp-radius-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--kp-space-2);
+  transition:
+    background var(--kp-duration-fast) var(--kp-easing),
+    color var(--kp-duration-fast) var(--kp-easing),
+    border-color var(--kp-duration-fast) var(--kp-easing);
+  font-family: inherit;
+  line-height: 1.3;
+}
+
+.kp-view-tab:hover {
+  color: var(--kp-text);
+  background: var(--kp-bg-hover);
+}
+
+.kp-view-tab.is-active {
+  color: var(--kp-accent);
+  background: var(--kp-accent-soft);
+}
+
+.kp-view-tab .kp-ct {
+  font-family: var(--kp-font-mono);
+  font-size: 10.5px;
+  color: var(--kp-text-faint);
+  font-weight: var(--kp-weight-medium);
+}
+
+.kp-view-tab.is-active .kp-ct {
+  color: var(--kp-accent);
+}
+
+.kp-view-tab svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+
+.kp-subnav-divider {
+  width: 1px;
+  height: 18px;
+  background: var(--kp-border);
+  margin: 0 var(--kp-space-1);
+}
+
+.kp-subnav-spacer {
+  flex: 1;
+  min-width: var(--kp-space-2);
+}
+
+/* ============================================================
+   Controls — generic small button used in subnav, lane head, etc.
+   ============================================================ */
+.kp-control {
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--kp-border-strong);
+  color: var(--kp-text);
+  padding: 5px var(--kp-space-3);
+  font-size: var(--kp-text-sm);
+  font-family: inherit;
+  cursor: pointer;
+  border-radius: var(--kp-radius-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--kp-space-2);
+  transition:
+    background var(--kp-duration-fast) var(--kp-easing),
+    border-color var(--kp-duration-fast) var(--kp-easing),
+    color var(--kp-duration-fast) var(--kp-easing);
+  line-height: 1.3;
+}
+
+.kp-control:hover {
+  background: var(--kp-bg-hover);
+  border-color: var(--kp-border-focus);
+}
+
+.kp-control:active {
+  background: var(--kp-bg-active);
+}
+
+.kp-control svg {
+  width: 13px;
+  height: 13px;
+  color: var(--kp-text-muted);
+}
+
+.kp-control.is-filter {
+  color: var(--kp-accent);
+  border-color: var(--kp-accent-border);
+  background: var(--kp-accent-soft);
+}
+
+.kp-control.is-filter svg {
+  color: var(--kp-accent);
+}
+
+.kp-control.is-filter::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: var(--kp-radius-full);
+  background: var(--kp-accent);
+}
+
+.kp-control.is-primary {
+  color: var(--kp-accent-fg);
+  background: var(--kp-accent);
+  border-color: var(--kp-accent);
+}
+
+.kp-control.is-primary:hover {
+  background: var(--kp-accent-hover);
+  border-color: var(--kp-accent-hover);
+}
+
+.kp-control.is-ghost {
+  border-color: transparent;
+  color: var(--kp-text-muted);
+}
+
+.kp-control.is-ghost:hover {
+  color: var(--kp-text);
+}
+
+.kp-control[disabled],
+.kp-control.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ============================================================
+   Lanes container — horizontal scroll surface
+   ------------------------------------------------------------
+   F12: lanes MUST flow as horizontal columns. We belt-and-suspenders
+   this with both flex on the inner row AND an outer scroller so the
+   container is horizontally scrollable. `flex-direction: row` is
+   the default — declaring it explicitly here prevents any ambient
+   stylesheet (Obsidian theme, etc.) from accidentally flipping the
+   axis to column.
+   ============================================================ */
+.kp-board-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-x: auto;
+  overflow-y: auto;
+  background: var(--kp-bg);
+  /* W2.4 — keep the horizontal scrollbar visible so users discover lanes
+     that are out-of-viewport on a 4+-lane board. `scrollbar-gutter:
+     stable` reserves space so the scrollbar doesn't pop in/out as lanes
+     are added/removed; `scrollbar-color` makes it visible against the
+     board background on themes where the system default is invisibly
+     faint. */
+  scrollbar-gutter: stable;
+  scrollbar-color: var(--kp-border-strong) transparent;
+}
+
+.kp-board-scroll::-webkit-scrollbar {
+  height: 10px;
+}
+.kp-board-scroll::-webkit-scrollbar-thumb {
+  background: var(--kp-border-strong);
+  border-radius: 4px;
+}
+.kp-board-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.kp-lanes {
+  display: flex;
+  flex-direction: row;
+  gap: var(--kp-lane-gap);
+  align-items: stretch;
+  min-width: max-content;
+  padding: var(--kp-space-1) var(--kp-board-padding-x) var(--kp-space-2);
+}
+
+/* When the board is empty (no lanes) */
+.kp-board-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 360px;
+  padding: var(--kp-space-8) var(--kp-space-6);
+  color: var(--kp-text-muted);
+  text-align: center;
+  gap: var(--kp-space-3);
+}
+
+.kp-board-empty h3 {
+  font-size: var(--kp-text-lg);
+  font-weight: var(--kp-weight-semi);
+  color: var(--kp-text);
+  margin: 0;
+}
+
+.kp-board-empty p {
+  margin: 0;
+  max-width: 360px;
+}
+
+/* View-tab label — ensures the text and the count badge keep visible
+   whitespace even when adjacent inline elements would otherwise collapse
+   (F8). The label gets `display: inline` so the surrounding flex gap
+   handles the spacing. */
+.kp-view-tab__label {
+  display: inline;
+}
+
+/* ============================================================
+   Pro chip — small inline pill used in headers / toolbars to flag a
+   surface as gated by a Pro entitlement. Distinct from kp-paywall-badge
+   in that it never has interactive affordance; pure label-styling.
+   F15 — Detail-panel section headers compose this beside their label
+   instead of running "RecurrencePro" together.
+   ============================================================ */
+.kp-pro-chip {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--kp-font-mono);
+  font-size: 10px;
+  font-weight: var(--kp-weight-medium);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--kp-accent);
+  padding: 2px 6px;
+  border: 1px solid var(--kp-accent-border);
+  border-radius: var(--kp-radius-xs);
+  line-height: 1;
+  margin-left: var(--kp-space-2);
+}
+
+/* ============================================================
+   Error boundary fallback (F16). Calm, neutral; never red-alarms.
+   ============================================================ */
+.kp-error-boundary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--kp-space-3);
+  padding: var(--kp-space-6) var(--kp-space-5);
+  margin: var(--kp-space-5) var(--kp-board-padding-x);
+  background: var(--kp-bg-secondary);
+  border: 1px solid var(--kp-border-strong);
+  border-radius: var(--kp-radius-lg);
+  color: var(--kp-text);
+  max-width: 720px;
+}
+
+.kp-error-boundary__title {
+  margin: 0;
+  font-size: var(--kp-text-lg);
+  font-weight: var(--kp-weight-semi);
+}
+
+.kp-error-boundary__detail {
+  margin: 0;
+  color: var(--kp-text-muted);
+  font-size: var(--kp-text-md);
+  line-height: var(--kp-leading-normal);
+}
+
+.kp-error-boundary__pre {
+  margin: 0;
+  padding: var(--kp-space-2) var(--kp-space-3);
+  background: var(--kp-bg-tertiary);
+  border: 1px solid var(--kp-border);
+  border-radius: var(--kp-radius-sm);
+  font-family: var(--kp-font-mono);
+  font-size: var(--kp-text-xs);
+  color: var(--kp-text-muted);
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+.kp-error-boundary__actions {
+  display: flex;
+  gap: var(--kp-space-2);
+  flex-wrap: wrap;
+}
+
+/* ============================================================
+   Animations
+   ============================================================ */
+@keyframes kp-fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes kp-window-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   Pro-locked view tab (H5) — Pro-gated tabs on the Free tier
+   render with a dimmed, disabled-but-clickable feel so the click
+   reads as intentional (vs. the silent failure flagged in QA H5).
+   The button is still wired; clicking it dispatches
+   `kanban-pro:open-pro-settings` (handled by main.ts) so the
+   Pro settings pane opens. A `title` tooltip explains the gating.
+   ============================================================ */
+.kp-view-tab.is-pro-locked {
+  color: var(--kp-text-faint);
+  opacity: 0.78;
+  cursor: pointer; /* keep it clickable; not a true disabled state */
+}
+
+.kp-view-tab.is-pro-locked:hover {
+  /* On hover, lift the dim slightly and tint with accent-soft so it
+     telegraphs "this leads to an upgrade flow", not "this is broken". */
+  color: var(--kp-accent);
+  background: var(--kp-accent-soft);
+  opacity: 1;
+}
+
+.kp-view-tab.is-pro-locked .kp-pro-chip {
+  margin-left: var(--kp-space-1);
+}
+
+/* Pro-locked variant of the generic Subnav control (Views button on Free). */
+.kp-control.is-pro-locked {
+  color: var(--kp-text-faint);
+  opacity: 0.78;
+}
+
+.kp-control.is-pro-locked:hover {
+  color: var(--kp-accent);
+  background: var(--kp-accent-soft);
+  border-color: var(--kp-accent-border);
+  opacity: 1;
+}
+
+.kp-control.is-open {
+  background: var(--kp-bg-hover);
+  border-color: var(--kp-border-focus);
+}
+
+/* ============================================================
+   Subnav popover (H6) — small floating panel anchored to its
+   trigger button in the subnav row. v1 alpha surfaces stub
+   "coming in 1.1" copy so Filter / Views / Search controls
+   never fail silently.
+
+   The anchor wrapper establishes positioning context; the panel
+   is absolutely positioned beneath the trigger. No portal — the
+   panel lives inside .kp-subnav so its z-index stacks above the
+   board content without escaping the view leaf.
+   ============================================================ */
+.kp-popover-anchor {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.kp-popover {
+  position: absolute;
+  top: calc(100% + var(--kp-space-2));
+  left: 0;
+  /* W2.6 — use the popover z token; the magic 50 was below
+     `--kp-z-popover` (500), forcing the inner panel under sibling
+     stacking contexts in Table view. */
+  z-index: var(--kp-z-popover);
+  min-width: 240px;
+  max-width: 320px;
+  background: var(--kp-bg);
+  border: 1px solid var(--kp-border-strong);
+  border-radius: var(--kp-radius-md, var(--kp-radius-sm));
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.06),
+    0 8px 24px rgba(0, 0, 0, 0.16);
+  padding: var(--kp-space-3) var(--kp-space-4) var(--kp-space-4);
+  animation: kp-fade-in var(--kp-duration-fast) var(--kp-easing) both;
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-3);
+}
+
+.kp-popover.is-anchor-right {
+  left: auto;
+  right: 0;
+}
+
+.kp-popover-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--kp-space-2);
+}
+
+.kp-popover-title {
+  font-size: var(--kp-text-sm);
+  font-weight: var(--kp-weight-semi);
+  color: var(--kp-text);
+}
+
+.kp-popover-close {
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: var(--kp-text-muted);
+  cursor: pointer;
+  padding: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--kp-radius-xs);
+  line-height: 0;
+}
+
+.kp-popover-close:hover {
+  color: var(--kp-text);
+  background: var(--kp-bg-hover);
+}
+
+.kp-popover-close svg {
+  width: 12px;
+  height: 12px;
+}
+
+.kp-popover-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-3);
+}
+
+.kp-popover-msg {
+  margin: 0;
+  font-size: var(--kp-text-sm);
+  color: var(--kp-text-muted);
+  line-height: var(--kp-leading-normal);
+}
+
+.kp-popover-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-1);
+}
+
+.kp-popover-field-label {
+  font-size: var(--kp-text-xs, 11px);
+  color: var(--kp-text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.kp-popover-input {
+  appearance: none;
+  background: var(--kp-bg-secondary);
+  border: 1px solid var(--kp-border);
+  border-radius: var(--kp-radius-sm);
+  padding: 5px var(--kp-space-2);
+  font-family: inherit;
+  font-size: var(--kp-text-sm);
+  color: var(--kp-text);
+}
+
+.kp-popover-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.kp-popover-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--kp-space-2);
+}
+
+/* ============================================================
+   Filter popover — multi-select chip lists for tags + assignees
+   (H3). Reuses .kp-control styling vocabulary so the chip
+   buttons read as toolbar-grade controls inside the popover.
+   ============================================================ */
+.kp-chiplist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--kp-space-1);
+}
+
+.kp-chiplist-item {
+  appearance: none;
+  background: var(--kp-bg-secondary);
+  border: 1px solid var(--kp-border);
+  color: var(--kp-text);
+  padding: 2px var(--kp-space-2);
+  font-size: var(--kp-text-xs);
+  font-family: inherit;
+  border-radius: var(--kp-radius-xs);
+  cursor: pointer;
+  line-height: 1.4;
+  transition:
+    background var(--kp-duration-fast) var(--kp-easing),
+    border-color var(--kp-duration-fast) var(--kp-easing),
+    color var(--kp-duration-fast) var(--kp-easing);
+}
+
+.kp-chiplist-item:hover {
+  border-color: var(--kp-border-focus);
+}
+
+.kp-chiplist-item.is-on {
+  background: var(--kp-accent-soft);
+  border-color: var(--kp-accent-border);
+  color: var(--kp-accent);
+}
+
+/* ============================================================
+   Saved Views picker (B2/B3). Rendered inside the Views
+   subnav-popover. Each row apply-clicks the view; a hover-
+   revealed trash icon deletes. The Save-current-filter action
+   sits in the standard .kp-popover-actions footer.
+   ============================================================ */
+.kp-views-picker__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.kp-views-picker__row {
+  display: flex;
+  align-items: stretch;
+  gap: var(--kp-space-1);
+  border-radius: var(--kp-radius-sm);
+}
+
+.kp-views-picker__row:hover {
+  background: var(--kp-bg-hover);
+}
+
+.kp-views-picker__apply {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: var(--kp-text);
+  padding: var(--kp-space-1) var(--kp-space-2);
+  font-family: inherit;
+  font-size: var(--kp-text-sm);
+  text-align: left;
+  cursor: pointer;
+  border-radius: var(--kp-radius-sm);
+}
+
+.kp-views-picker__apply:focus-visible {
+  outline: 2px solid var(--kp-border-focus);
+  outline-offset: -1px;
+}
+
+.kp-views-picker__name {
+  font-weight: var(--kp-weight-medium);
+  line-height: var(--kp-leading-normal);
+}
+
+.kp-views-picker__hint {
+  font-size: var(--kp-text-xs);
+  color: var(--kp-text-muted);
+  line-height: 1.2;
+}
+
+.kp-views-picker__delete {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: var(--kp-text-faint);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--kp-duration-fast) var(--kp-easing),
+              color var(--kp-duration-fast) var(--kp-easing);
+}
+
+.kp-views-picker__row:hover .kp-views-picker__delete,
+.kp-views-picker__delete:focus-visible {
+  opacity: 1;
+}
+
+.kp-views-picker__delete:hover {
+  color: var(--kp-danger, var(--kp-text));
+}
+
+.kp-views-picker__delete svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* ============================================================
+   Search match-count badge on the Search subnav control.
+   Mirrors `.kp-ct` typography so the subnav reads as one unit.
+   ============================================================ */
+.kp-search-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  padding: 0 4px;
+  margin-left: var(--kp-space-1);
+  background: var(--kp-accent);
+  color: var(--kp-accent-fg);
+  font-family: var(--kp-font-mono);
+  font-size: 10px;
+  font-weight: var(--kp-weight-medium);
+  border-radius: var(--kp-radius-full, var(--kp-radius-sm));
+  line-height: 1.4;
+}
+
+/* ============================================================
+   Lock icon on Pro-gated view tabs (L5). Small padlock glyph
+   that telegraphs the gate without requiring users to hover
+   or click. Sits inside the tab beside the label.
+   ============================================================ */
+.kp-view-tab__lock {
+  width: 11px;
+  height: 11px;
+  margin-left: var(--kp-space-1);
+  color: var(--kp-text-faint);
+  flex: 0 0 auto;
+}
+
+.kp-view-tab.is-pro-locked .kp-view-tab__lock {
+  color: var(--kp-accent);
+  opacity: 0.85;
+}
+
+.kp-view-tab.is-pro-locked:hover .kp-view-tab__lock {
+  opacity: 1;
+}
+
+/* ============================================================
+   Active Filter chip — when filter criteria are non-default,
+   pull the chip text harder toward the accent so the active
+   state reads at a glance. The base .is-filter styling already
+   tints; this adds a touch more affordance for "you have a
+   filter applied right now".
+   ============================================================ */
+.kp-control.is-filter.is-active {
+  background: var(--kp-accent-soft);
+  color: var(--kp-accent);
+  border-color: var(--kp-accent);
+  font-weight: var(--kp-weight-medium);
+}

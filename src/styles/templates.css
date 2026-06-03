@@ -1,0 +1,165 @@
+/* ============================================================
+   Kanban Pro — Templates modal
+   ============================================================
+   Mounted into an Obsidian Modal via ReactDOM.createRoot.
+   The modal's outer chrome is Obsidian's — we only style the
+   inner pane.
+   ============================================================ */
+
+.kp-templates-modal-host {
+  /* Obsidian's Modal sets paddings; we constrain width on the inner pane
+     so the modal looks intentional at narrow widths. */
+  padding: 0;
+}
+
+.kp-templates-modal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-3);
+  font-family: var(--kp-font-ui);
+  color: var(--kp-text);
+  width: min(520px, 100%);
+}
+
+.kp-templates-modal__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-2);
+  padding-bottom: var(--kp-space-2);
+  border-bottom: 1px solid var(--kp-border);
+}
+
+.kp-templates-modal__title {
+  margin: 0;
+  font-size: var(--kp-text-xl);
+  font-weight: var(--kp-weight-semi);
+}
+
+.kp-templates-modal__hint {
+  margin: 0;
+  font-size: var(--kp-text-sm);
+  color: var(--kp-text-muted);
+}
+
+.kp-templates-modal__hint code {
+  font-family: var(--kp-font-mono);
+  background: var(--kp-bg-tertiary);
+  padding: 1px 4px;
+  border-radius: var(--kp-radius-xs);
+  font-size: 11px;
+  color: var(--kp-text);
+}
+
+.kp-templates-modal__search {
+  appearance: none;
+  background: var(--kp-bg);
+  color: var(--kp-text);
+  border: 1px solid var(--kp-border);
+  border-radius: var(--kp-radius);
+  padding: var(--kp-space-2) var(--kp-space-3);
+  font-size: var(--kp-text-md);
+  font-family: inherit;
+  transition:
+    border-color var(--kp-duration-fast) var(--kp-easing),
+    box-shadow var(--kp-duration-fast) var(--kp-easing);
+}
+
+.kp-templates-modal__search:focus {
+  outline: none;
+  border-color: var(--kp-accent);
+  box-shadow: var(--kp-focus-ring);
+}
+
+.kp-templates-modal__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 320px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.kp-templates-modal__empty {
+  padding: var(--kp-space-4);
+  text-align: center;
+  color: var(--kp-text-muted);
+  font-size: var(--kp-text-sm);
+  border: 1px dashed var(--kp-border);
+  border-radius: var(--kp-radius);
+}
+
+.kp-templates-modal__item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--kp-space-2) var(--kp-space-3);
+  border-radius: var(--kp-radius);
+  cursor: pointer;
+  background: transparent;
+  transition: background var(--kp-duration-fast) var(--kp-easing);
+}
+
+.kp-templates-modal__item:hover,
+.kp-templates-modal__item.is-highlighted {
+  background: var(--kp-bg-hover);
+}
+
+.kp-templates-modal__item.is-highlighted {
+  background: var(--kp-accent-soft);
+}
+
+.kp-templates-modal__item-name {
+  font-size: var(--kp-text-md);
+  font-weight: var(--kp-weight-medium);
+  color: var(--kp-text);
+}
+
+.kp-templates-modal__item-desc {
+  font-size: var(--kp-text-sm);
+  color: var(--kp-text-muted);
+}
+
+.kp-templates-modal__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--kp-space-3);
+  padding-top: var(--kp-space-2);
+  border-top: 1px solid var(--kp-border);
+  font-size: var(--kp-text-xs);
+  color: var(--kp-text-faint);
+}
+
+.kp-templates-modal__manage {
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: var(--kp-accent);
+  font-family: inherit;
+  font-size: var(--kp-text-sm);
+  cursor: pointer;
+  padding: var(--kp-space-1) var(--kp-space-2);
+  border-radius: var(--kp-radius-sm);
+}
+
+.kp-templates-modal__manage:hover {
+  background: var(--kp-accent-soft);
+}
+
+.kp-templates-modal__kbd {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.kp-templates-modal__kbd kbd {
+  font-family: var(--kp-font-mono);
+  font-size: 10px;
+  padding: 1px 4px;
+  background: var(--kp-bg-tertiary);
+  border: 1px solid var(--kp-border);
+  border-radius: var(--kp-radius-xs);
+  color: var(--kp-text-muted);
+}

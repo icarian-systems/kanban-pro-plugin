@@ -1,0 +1,378 @@
+/* ============================================================
+   Kanban Pro — Settings tab
+   ============================================================
+   Lives inside Obsidian's `.modal-container` and `.vertical-tab-content`
+   structure. We piggyback on Obsidian's setting items (.setting-item)
+   for native look-and-feel, only adding a few Kanban-specific shells.
+   ============================================================ */
+
+.kp-settings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-5);
+  padding: var(--kp-space-2) 0;
+  font-family: var(--kp-font-ui);
+  color: var(--kp-text);
+}
+
+/* ============================================================
+   Settings pane navigation (general / appearance / pro / integrations)
+   ============================================================ */
+.kp-settings-tabs {
+  display: flex;
+  gap: 2px;
+  padding-bottom: var(--kp-space-3);
+  border-bottom: 1px solid var(--kp-border);
+  margin-bottom: var(--kp-space-3);
+}
+
+.kp-settings-tab {
+  appearance: none;
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 6px var(--kp-space-3);
+  font-size: var(--kp-text-sm);
+  font-weight: var(--kp-weight-medium);
+  color: var(--kp-text-muted);
+  cursor: pointer;
+  border-radius: var(--kp-radius-sm);
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--kp-space-2);
+  transition:
+    background var(--kp-duration-fast) var(--kp-easing),
+    color var(--kp-duration-fast) var(--kp-easing);
+}
+
+.kp-settings-tab:hover {
+  color: var(--kp-text);
+  background: var(--kp-bg-hover);
+}
+
+.kp-settings-tab.is-active {
+  color: var(--kp-accent);
+  background: var(--kp-accent-soft);
+}
+
+.kp-settings-tab svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* ============================================================
+   Pane / section
+   ============================================================ */
+.kp-settings-pane {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-5);
+}
+
+.kp-settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-2);
+}
+
+.kp-settings-section-h {
+  font-size: var(--kp-text-md);
+  font-weight: var(--kp-weight-semi);
+  color: var(--kp-text);
+  margin: 0;
+  padding-bottom: var(--kp-space-1);
+  border-bottom: 1px solid var(--kp-border);
+}
+
+.kp-settings-section-desc {
+  font-size: var(--kp-text-sm);
+  color: var(--kp-text-muted);
+  margin: 0 0 var(--kp-space-2);
+  max-width: 560px;
+  line-height: var(--kp-leading-normal);
+}
+
+/* ============================================================
+   Setting row — analogue of Obsidian's setting-item
+   ============================================================ */
+.kp-setting {
+  display: flex;
+  align-items: center;
+  gap: var(--kp-space-4);
+  padding: var(--kp-space-3) 0;
+  border-bottom: 1px solid var(--kp-border);
+}
+
+.kp-setting:last-child {
+  border-bottom: none;
+}
+
+.kp-setting-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.kp-setting-name {
+  font-size: var(--kp-text-md);
+  font-weight: var(--kp-weight-medium);
+  color: var(--kp-text);
+  margin: 0 0 2px;
+}
+
+.kp-setting-desc {
+  font-size: var(--kp-text-sm);
+  color: var(--kp-text-muted);
+  margin: 0;
+  line-height: var(--kp-leading-normal);
+}
+
+.kp-setting-control {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--kp-space-2);
+  flex-shrink: 0;
+}
+
+/* Pro-only setting — visually flagged */
+.kp-setting.is-pro .kp-setting-name::after {
+  content: 'PRO';
+  font-family: var(--kp-font-mono);
+  font-size: 9px;
+  font-weight: var(--kp-weight-medium);
+  letter-spacing: 0.08em;
+  color: var(--kp-accent);
+  padding: 1px 5px;
+  border: 1px solid var(--kp-accent-border);
+  border-radius: var(--kp-radius-xs);
+  margin-left: var(--kp-space-2);
+  vertical-align: 2px;
+}
+
+.kp-setting.is-pro.is-locked {
+  opacity: 0.65;
+}
+
+.kp-setting.is-pro.is-locked .kp-setting-control {
+  pointer-events: none;
+}
+
+/* ============================================================
+   License-pane specifics
+   ============================================================ */
+.kp-license-status {
+  display: flex;
+  align-items: center;
+  gap: var(--kp-space-3);
+  padding: var(--kp-space-3) var(--kp-space-4);
+  background: var(--kp-bg-secondary);
+  border: 1px solid var(--kp-border);
+  border-radius: var(--kp-radius);
+}
+
+.kp-license-status .kp-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--kp-radius-full);
+  background: var(--kp-text-faint);
+  flex-shrink: 0;
+}
+
+.kp-license-status.is-licensed .kp-dot { background: var(--kp-green); }
+.kp-license-status.is-grace    .kp-dot { background: var(--kp-amber); }
+.kp-license-status.is-lapsed   .kp-dot { background: var(--kp-red); }
+.kp-license-status.is-unlicensed .kp-dot { background: var(--kp-text-faint); }
+
+.kp-license-status-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.kp-license-status-title {
+  font-size: var(--kp-text-md);
+  font-weight: var(--kp-weight-medium);
+  color: var(--kp-text);
+}
+
+.kp-license-status-meta {
+  font-size: var(--kp-text-xs);
+  color: var(--kp-text-muted);
+  font-family: var(--kp-font-mono);
+}
+
+/* ============================================================
+   Inputs that we render ourselves (when Obsidian's components
+   don't fit the use case — e.g. token field, color picker)
+   ============================================================ */
+.kp-input {
+  appearance: none;
+  background: var(--kp-bg);
+  border: 1px solid var(--kp-border);
+  color: var(--kp-text);
+  font-family: inherit;
+  font-size: var(--kp-text-md);
+  padding: 5px var(--kp-space-2);
+  border-radius: var(--kp-radius-sm);
+  min-width: 200px;
+  transition: border-color var(--kp-duration-fast) var(--kp-easing);
+}
+
+.kp-input:focus-visible {
+  outline: none;
+  border-color: var(--kp-accent);
+  box-shadow: var(--kp-focus-ring);
+}
+
+.kp-input.is-mono {
+  font-family: var(--kp-font-mono);
+  font-size: var(--kp-text-sm);
+}
+
+/* Compact toggle for switch-like settings */
+.kp-toggle {
+  appearance: none;
+  width: 32px;
+  height: 18px;
+  background: var(--kp-border-strong);
+  border-radius: var(--kp-radius-full);
+  position: relative;
+  cursor: pointer;
+  transition: background var(--kp-duration-fast) var(--kp-easing);
+  border: none;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.kp-toggle::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: var(--kp-bg);
+  border-radius: var(--kp-radius-full);
+  top: 2px;
+  left: 2px;
+  transition: transform var(--kp-duration-fast) var(--kp-easing);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.kp-toggle[aria-checked="true"] {
+  background: var(--kp-accent);
+}
+
+.kp-toggle[aria-checked="true"]::after {
+  transform: translateX(14px);
+}
+
+.kp-toggle:focus-visible {
+  outline: none;
+  box-shadow: var(--kp-focus-ring);
+}
+
+/* ============================================================
+   Integrations pane — service rows (GitHub, Calendar, …)
+   ============================================================ */
+.kp-integration-card {
+  display: flex;
+  align-items: center;
+  gap: var(--kp-space-3);
+  padding: var(--kp-space-3) var(--kp-space-4);
+  background: var(--kp-bg-secondary);
+  border: 1px solid var(--kp-border);
+  border-radius: var(--kp-radius);
+}
+
+.kp-integration-icon {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--kp-text-muted);
+  background: var(--kp-bg-tertiary);
+  border-radius: var(--kp-radius-sm);
+  flex-shrink: 0;
+}
+
+.kp-integration-icon svg { width: 16px; height: 16px; }
+
+.kp-integration-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.kp-integration-name {
+  font-size: var(--kp-text-md);
+  font-weight: var(--kp-weight-medium);
+  color: var(--kp-text);
+}
+
+.kp-integration-meta {
+  font-size: var(--kp-text-xs);
+  color: var(--kp-text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.kp-integration-meta .kp-dot-ok {
+  width: 6px;
+  height: 6px;
+  background: var(--kp-green);
+  border-radius: var(--kp-radius-full);
+}
+
+.kp-integration-meta.is-error {
+  color: var(--kp-red);
+}
+
+.kp-integration-meta.is-error .kp-dot-ok {
+  background: var(--kp-red);
+}
+
+/* ============================================================
+   Pro-gated rows inside the Integrations pane.
+
+   Obsidian's `.setting-item` rows host our `.kp-pro-chip` badge in the
+   name; when the user is on Free we dim the row + disable the control.
+   The chip itself stays at full opacity so the "PRO" label remains
+   readable even on a locked row.
+   ============================================================ */
+.setting-item.is-pro-locked {
+  opacity: 0.7;
+}
+
+.setting-item.is-pro-locked .kp-pro-chip {
+  opacity: 1;
+}
+
+.setting-item.is-pro-locked .setting-item-description {
+  color: var(--kp-text-muted);
+}
+
+/* Pro-locked button — disabled visual cue without changing layout. */
+button.is-pro-locked,
+button.is-pro-locked:hover {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: auto; /* keep the title tooltip discoverable */
+}
+
+.checkbox-container.is-pro-locked {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* ============================================================
+   Pro pane — hide Deactivate / Revalidate when there's no license.
+   The wrapper is shown/hidden via inline style by `renderProPane()`;
+   this rule just ensures it has a sensible default layout when
+   visible (matches the spacing between Obsidian's native setting
+   items so it looks like one continuous list).
+   ============================================================ */
+.kanban-pro-licensed-only {
+  display: block;
+}

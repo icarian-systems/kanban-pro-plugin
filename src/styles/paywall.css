@@ -1,0 +1,370 @@
+/* ============================================================
+   Kanban Pro — Paywall & License Activation
+   ============================================================
+   PaywallCard renders in place of a gated Pro feature.
+   License-activation modal handles the paste-token flow.
+   Never block reads; never delete data; design must feel calm,
+   not nagging.
+   ============================================================ */
+
+/* ============================================================
+   PaywallCard — drop-in replacement for gated views
+   ============================================================ */
+.kp-paywall {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--kp-space-3);
+  padding: var(--kp-space-5) var(--kp-space-5);
+  background: var(--kp-paywall-tint);
+  border: 1px solid var(--kp-accent-border);
+  border-radius: var(--kp-radius-lg);
+  color: var(--kp-text);
+  max-width: 480px;
+  position: relative;
+  /* H1 — without min-width:0 a flex-row ancestor passes content width straight
+     through, which combined with the description's overflow-wrap defaults
+     collapses the column to roughly one word per line at 260px. */
+  min-width: 0;
+}
+
+.kp-paywall.is-inline {
+  flex-direction: row;
+  align-items: center;
+  padding: var(--kp-space-3) var(--kp-space-4);
+  gap: var(--kp-space-4);
+  max-width: none;
+}
+
+/* H1 — stacked compact variant used inside narrow hosts (right rail,
+   DetailPanel side column). Keeps title row, description, and CTA on
+   separate rows so the "Activate" button can't clip at ~260px widths,
+   and the description text breaks naturally without one-word-per-line
+   wrapping. */
+.kp-paywall.is-inline.is-stacked {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--kp-space-2);
+  padding: var(--kp-space-3) var(--kp-space-4);
+}
+
+.kp-paywall-head {
+  display: flex;
+  align-items: center;
+  gap: var(--kp-space-2);
+  /* H1 — head row can shrink so a long feature name doesn't push the badge
+     off-screen inside a 260px rail. */
+  min-width: 0;
+  width: 100%;
+}
+
+.kp-paywall-head .kp-paywall-title {
+  /* Title row sits in a flex container; needs min-width:0 to ellide
+     gracefully rather than forcing the badge into the next row at narrow
+     widths. */
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kp-paywall-badge {
+  font-family: var(--kp-font-mono);
+  font-size: 10px;
+  font-weight: var(--kp-weight-medium);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--kp-accent);
+  padding: 2px 6px;
+  border: 1px solid var(--kp-accent-border);
+  border-radius: var(--kp-radius-xs);
+  line-height: 1;
+}
+
+.kp-paywall-title {
+  font-size: var(--kp-text-lg);
+  font-weight: var(--kp-weight-semi);
+  color: var(--kp-text);
+  margin: 0;
+  letter-spacing: -0.005em;
+}
+
+.kp-paywall-body {
+  font-size: var(--kp-text-md);
+  color: var(--kp-text-muted);
+  margin: 0;
+  line-height: var(--kp-leading-normal);
+  /* H1 — at 260px rail width the description must wrap on word boundaries,
+     not break every word. `min-width: 0` lets the flex parent yield enough
+     space; `overflow-wrap: break-word` is the safety net for long URLs. */
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.kp-paywall-actions {
+  display: flex;
+  gap: var(--kp-space-2);
+  align-items: center;
+  margin-top: var(--kp-space-1);
+  flex-wrap: wrap;
+  /* H1 — actions row must shrink along with the rest of the column so the
+     CTA never clips. */
+  min-width: 0;
+}
+
+.kp-paywall-cta {
+  appearance: none;
+  background: var(--kp-accent);
+  color: var(--kp-accent-fg);
+  border: 1px solid var(--kp-accent);
+  padding: 6px var(--kp-space-3);
+  font-size: var(--kp-text-sm);
+  font-family: inherit;
+  font-weight: var(--kp-weight-medium);
+  cursor: pointer;
+  border-radius: var(--kp-radius-sm);
+  transition: background var(--kp-duration-fast) var(--kp-easing);
+  /* H1 — guarantee the label is fully visible at any host width.
+     `max-width: 100%` plus `white-space: nowrap` keeps "Activate Kanban Pro"
+     from being clipped (it stays on one line and the column wraps around
+     it instead). */
+  max-width: 100%;
+  white-space: nowrap;
+}
+
+/* H1 — when stacked inside the right rail, the CTA spans the full row so
+   it reads as a strong terminal call-to-action and there's no risk of the
+   text being clipped by parent padding. */
+.kp-paywall.is-stacked .kp-paywall-cta {
+  align-self: flex-start;
+}
+
+.kp-paywall-cta:hover {
+  background: var(--kp-accent-hover);
+  border-color: var(--kp-accent-hover);
+}
+
+.kp-paywall-link {
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: var(--kp-accent);
+  font-size: var(--kp-text-sm);
+  cursor: pointer;
+  text-decoration: none;
+  font-family: inherit;
+  padding: 6px var(--kp-space-2);
+  border-radius: var(--kp-radius-sm);
+}
+
+.kp-paywall-link:hover {
+  background: var(--kp-accent-soft);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+/* Overlay paywall — when a feature renders behind a veil */
+.kp-paywall-veil {
+  position: absolute;
+  inset: 0;
+  background: var(--kp-paywall-veil);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: inherit;
+  backdrop-filter: blur(2px);
+  z-index: var(--kp-z-sticky);
+  padding: var(--kp-space-5);
+}
+
+/* ============================================================
+   Grace-period banner (Pro lapsing soon)
+   ============================================================ */
+.kp-grace-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--kp-space-3);
+  padding: var(--kp-space-2) var(--kp-space-4);
+  background: var(--kp-amber-soft);
+  border: 1px solid var(--kp-amber-border);
+  color: var(--kp-amber);
+  font-size: var(--kp-text-sm);
+  border-radius: var(--kp-radius);
+}
+
+.kp-grace-banner strong {
+  font-weight: var(--kp-weight-medium);
+}
+
+.kp-grace-banner .kp-spacer {
+  flex: 1;
+}
+
+/* ============================================================
+   License activation modal
+   ============================================================ */
+.kp-activation-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--kp-paywall-veil);
+  z-index: var(--kp-z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--kp-space-5);
+  animation: kp-overlay-in var(--kp-duration-base) var(--kp-easing) both;
+}
+
+.kp-activation {
+  width: min(480px, 100%);
+  background: var(--kp-bg);
+  border: 1px solid var(--kp-border);
+  border-radius: var(--kp-radius-xl);
+  box-shadow: var(--kp-shadow-modal);
+  padding: var(--kp-space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-4);
+  animation: kp-modal-in var(--kp-duration-slow) var(--kp-easing) both;
+}
+
+.kp-activation-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-2);
+}
+
+.kp-activation-eyebrow {
+  font-family: var(--kp-font-mono);
+  font-size: 10px;
+  font-weight: var(--kp-weight-medium);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--kp-accent);
+}
+
+.kp-activation-title {
+  font-size: var(--kp-text-xl);
+  font-weight: var(--kp-weight-semi);
+  margin: 0;
+  color: var(--kp-text);
+  letter-spacing: -0.005em;
+}
+
+.kp-activation-body {
+  font-size: var(--kp-text-md);
+  color: var(--kp-text-muted);
+  margin: 0;
+  line-height: var(--kp-leading-normal);
+}
+
+.kp-activation-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-1);
+}
+
+.kp-activation-field label {
+  font-size: var(--kp-text-sm);
+  color: var(--kp-text-muted);
+  font-weight: var(--kp-weight-medium);
+}
+
+.kp-activation-input {
+  appearance: none;
+  width: 100%;
+  border: 1px solid var(--kp-border);
+  background: var(--kp-bg);
+  color: var(--kp-text);
+  font-family: var(--kp-font-mono);
+  font-size: var(--kp-text-sm);
+  padding: var(--kp-space-2) var(--kp-space-3);
+  border-radius: var(--kp-radius-sm);
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 88px;
+  transition: border-color var(--kp-duration-fast) var(--kp-easing);
+}
+
+.kp-activation-input:focus-visible {
+  outline: none;
+  border-color: var(--kp-accent);
+  box-shadow: var(--kp-focus-ring);
+}
+
+.kp-activation-error {
+  font-size: var(--kp-text-sm);
+  color: var(--kp-red);
+  padding: var(--kp-space-2) var(--kp-space-3);
+  background: var(--kp-red-soft);
+  border: 1px solid var(--kp-red-border);
+  border-radius: var(--kp-radius-sm);
+}
+
+.kp-activation-success {
+  font-size: var(--kp-text-sm);
+  color: var(--kp-green);
+  padding: var(--kp-space-2) var(--kp-space-3);
+  background: var(--kp-green-soft);
+  border: 1px solid var(--kp-green-border);
+  border-radius: var(--kp-radius-sm);
+}
+
+.kp-activation-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--kp-space-3);
+  padding-top: var(--kp-space-2);
+}
+
+.kp-activation-footer .kp-help {
+  font-size: var(--kp-text-xs);
+  color: var(--kp-text-faint);
+}
+
+.kp-activation-footer .kp-actions {
+  display: flex;
+  gap: var(--kp-space-2);
+}
+
+/* ============================================================
+   Status bar pill — quick "Licensed" indicator
+   ============================================================ */
+.kp-license-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--kp-text-xs);
+  color: var(--kp-accent);
+  padding: 0 var(--kp-space-1);
+  cursor: pointer;
+}
+
+.kp-license-pill strong {
+  color: var(--kp-accent);
+  font-weight: var(--kp-weight-medium);
+}
+
+.kp-license-pill .kp-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--kp-accent);
+  border-radius: var(--kp-radius-full);
+}
+
+.kp-license-pill.is-grace {
+  color: var(--kp-amber);
+}
+
+.kp-license-pill.is-grace strong { color: var(--kp-amber); }
+.kp-license-pill.is-grace .kp-dot { background: var(--kp-amber); }
+
+.kp-license-pill.is-lapsed {
+  color: var(--kp-text-muted);
+}
+
+.kp-license-pill.is-lapsed strong { color: var(--kp-text-muted); }
+.kp-license-pill.is-lapsed .kp-dot { background: var(--kp-text-faint); }

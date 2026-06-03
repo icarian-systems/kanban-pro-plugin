@@ -1,0 +1,240 @@
+/* ============================================================
+   Kanban Pro — Mobile overrides
+   ============================================================
+   Obsidian sets `body.is-mobile` on iOS / Android. The mockup
+   is desktop-targeted; this layer adjusts density, hides
+   hover-only chrome (no hover on touch), and bumps touch
+   targets to ≥40px where it matters.
+   ============================================================ */
+
+body.is-mobile .kp-root {
+  font-size: var(--kp-text-md);
+}
+
+/* ============================================================
+   Board chrome — compact paddings on small screens
+   ============================================================ */
+body.is-mobile .kp-board {
+  padding:
+    var(--kp-space-4)
+    var(--kp-space-4)
+    var(--kp-space-6);
+}
+
+body.is-mobile .kp-masthead {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--kp-space-3);
+  padding-bottom: var(--kp-space-3);
+  margin-bottom: var(--kp-space-3);
+}
+
+body.is-mobile .kp-masthead-meta {
+  align-items: flex-start;
+}
+
+body.is-mobile .kp-board-title {
+  font-size: 22px;
+}
+
+body.is-mobile .kp-subnav {
+  margin-bottom: var(--kp-space-4);
+  gap: var(--kp-space-2);
+}
+
+body.is-mobile .kp-view-tab {
+  padding: 8px var(--kp-space-3);
+  font-size: var(--kp-text-md);
+  min-height: 36px;
+}
+
+body.is-mobile .kp-control {
+  padding: 8px var(--kp-space-3);
+  font-size: var(--kp-text-md);
+  min-height: 36px;
+}
+
+/* ============================================================
+   Lanes — narrower per-lane width on phones
+   ============================================================ */
+body.is-mobile .kp-lanes {
+  gap: var(--kp-space-3);
+  scroll-snap-type: x mandatory;
+}
+
+body.is-mobile .kp-lane {
+  width: 88vw;
+  max-width: 320px;
+  scroll-snap-align: start;
+}
+
+body.is-mobile .kp-add-lane {
+  width: 88vw;
+  max-width: 320px;
+}
+
+body.is-mobile .kp-lane-head {
+  padding: var(--kp-space-2) var(--kp-space-1) var(--kp-space-2);
+}
+
+/* No hover on touch — keep lane actions visible always */
+body.is-mobile .kp-lane-actions {
+  opacity: 1;
+}
+
+body.is-mobile .kp-lane-actions .kp-ic {
+  width: 32px;
+  height: 32px;
+}
+
+body.is-mobile .kp-lane-actions .kp-ic svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ============================================================
+   Cards — denser layout, larger checkboxes
+   ============================================================ */
+body.is-mobile .kp-card {
+  padding: var(--kp-space-3) var(--kp-space-3);
+  gap: 6px;
+}
+
+body.is-mobile .kp-card-title {
+  font-size: var(--kp-text-lg);
+  line-height: 1.35;
+}
+
+body.is-mobile .kp-card-body {
+  font-size: var(--kp-text-md);
+}
+
+body.is-mobile .kp-check {
+  width: 18px;
+  height: 18px;
+}
+
+body.is-mobile .kp-check.is-done svg {
+  width: 12px;
+  height: 12px;
+}
+
+body.is-mobile .kp-subtask {
+  grid-template-columns: 20px 1fr;
+  padding: 4px 0;
+  font-size: var(--kp-text-md);
+}
+
+/* No card-hover shadow on touch; the press state does the work */
+body.is-mobile .kp-card:hover {
+  box-shadow: var(--kp-shadow-card);
+  border-color: var(--kp-card-border);
+}
+
+body.is-mobile .kp-card:active {
+  transform: none;
+  background: var(--kp-bg-hover);
+}
+
+/* Larger add-card target */
+body.is-mobile .kp-add-card {
+  padding: var(--kp-space-3) var(--kp-space-3);
+  font-size: var(--kp-text-md);
+}
+
+/* ============================================================
+   Detail panel — full-screen on mobile
+   ============================================================ */
+body.is-mobile .kp-detail-overlay {
+  padding: 0;
+  align-items: stretch;
+}
+
+body.is-mobile .kp-detail-panel {
+  width: 100%;
+  max-height: 100vh;
+  border-radius: 0;
+  border: none;
+}
+
+body.is-mobile .kp-detail-footer {
+  border-radius: 0;
+  padding-bottom: max(var(--kp-space-3), env(safe-area-inset-bottom));
+}
+
+/* ============================================================
+   Table view — convert to stacked cards on small screens
+   ============================================================ */
+body.is-mobile .kp-table-root {
+  padding: var(--kp-space-4);
+}
+
+body.is-mobile .kp-table {
+  display: block;
+  border: none;
+  background: transparent;
+}
+
+body.is-mobile .kp-table thead {
+  display: none;
+}
+
+body.is-mobile .kp-table tbody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-2);
+}
+
+body.is-mobile .kp-table tr {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-1);
+  background: var(--kp-bg);
+  border: 1px solid var(--kp-border);
+  border-radius: var(--kp-radius);
+  padding: var(--kp-space-3);
+}
+
+body.is-mobile .kp-table td {
+  border: none;
+  padding: 0;
+}
+
+body.is-mobile .kp-table td::before {
+  content: attr(data-col);
+  display: block;
+  font-size: 10px;
+  color: var(--kp-text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 2px;
+}
+
+/* ============================================================
+   Toasts — stretch to width, sit above safe area
+   ============================================================ */
+body.is-mobile .kp-toasts {
+  left: var(--kp-space-3);
+  right: var(--kp-space-3);
+  bottom: max(var(--kp-space-3), env(safe-area-inset-bottom));
+  max-width: none;
+}
+
+body.is-mobile .kp-toast {
+  min-width: 0;
+  width: 100%;
+}
+
+/* ============================================================
+   Hide hover-only affordances
+   ============================================================ */
+body.is-mobile .kp-tag.is-clickable:hover {
+  background: var(--kp-bg-tertiary);
+  color: var(--kp-text-muted);
+}
+
+/* Rail / sidebar elements are usually outside our scope, but
+   if we render a rail it should stack vertically */
+body.is-mobile .kp-rail {
+  display: none;
+}

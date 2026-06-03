@@ -1,0 +1,543 @@
+/* ============================================================
+   Kanban Pro — Card
+   ============================================================
+   Surface, hover/active/dragging states, title, body, meta row,
+   due chips, tags, assignee avatars, timer pill, ico-flag
+   (template / recurrence), subtasks, progress bar, done state.
+   ============================================================ */
+
+.kp-card {
+  background: var(--kp-card-bg);
+  border: 1px solid var(--kp-card-border);
+  padding: var(--kp-space-3) var(--kp-space-3) var(--kp-space-3) 14px;
+  display: grid;
+  gap: var(--kp-space-2);
+  cursor: grab;
+  border-radius: var(--kp-radius);
+  transition:
+    border-color var(--kp-duration-base) var(--kp-easing),
+    box-shadow var(--kp-duration-base) var(--kp-easing),
+    transform var(--kp-duration-fast) var(--kp-easing),
+    background var(--kp-duration-fast) var(--kp-easing);
+  animation: kp-card-in var(--kp-duration-slow) var(--kp-easing) both;
+  position: relative;
+  box-shadow: var(--kp-shadow-card);
+}
+
+/* Per-card staggered entrance (driven by --kp-lane-base set on .kp-cards) */
+.kp-cards .kp-card:nth-child(1) { animation-delay: calc(var(--kp-lane-base, 0s) + 160ms); }
+.kp-cards .kp-card:nth-child(2) { animation-delay: calc(var(--kp-lane-base, 0s) + 220ms); }
+.kp-cards .kp-card:nth-child(3) { animation-delay: calc(var(--kp-lane-base, 0s) + 280ms); }
+.kp-cards .kp-card:nth-child(4) { animation-delay: calc(var(--kp-lane-base, 0s) + 340ms); }
+.kp-cards .kp-card:nth-child(5) { animation-delay: calc(var(--kp-lane-base, 0s) + 400ms); }
+.kp-cards .kp-card:nth-child(n + 6) { animation-delay: calc(var(--kp-lane-base, 0s) + 460ms); }
+
+@keyframes kp-card-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.kp-card:hover {
+  border-color: var(--kp-card-border-hover);
+  box-shadow: var(--kp-shadow-card-hover);
+}
+
+.kp-card:focus-within {
+  border-color: var(--kp-accent-border);
+  box-shadow: var(--kp-focus-ring);
+  outline: none;
+}
+
+.kp-card:active {
+  cursor: grabbing;
+  transform: scale(0.997);
+}
+
+/* dnd-kit places this on the original element being dragged */
+.kp-card.is-dragging {
+  opacity: 0.35;
+  cursor: grabbing;
+}
+
+/* The DragOverlay clone — visually lifted, no rotation per spec */
+.kp-card.is-drag-overlay {
+  cursor: grabbing;
+  box-shadow: var(--kp-drag-shadow);
+  border-color: var(--kp-card-border-hover);
+  background: var(--kp-card-bg-dragging);
+  transform: none;
+  opacity: 1;
+}
+
+/* ============================================================
+   Title / body
+   ============================================================ */
+.kp-card-title {
+  font-size: var(--kp-text-base);
+  font-weight: var(--kp-weight-medium);
+  line-height: 1.4;
+  color: var(--kp-text);
+  margin: 0;
+  letter-spacing: -0.003em;
+  overflow-wrap: anywhere;
+}
+
+/* M3 — inline markdown inside titles (rendered via Obsidian's renderer).
+   The renderer outputs ordinary <strong>/<em>/<code>/<a> children; the
+   rules below keep their box model tight inside the title heading so a
+   bold span doesn't visually bump line-height or wrap funny.
+   `kp-card-title-md` is the inner inline container produced by
+   `<MarkdownInlineView>` — it has no layout of its own. */
+.kp-card-title > span,
+.kp-card-title > .kp-card-title-md {
+  display: inline;
+}
+
+.kp-card-title strong { font-weight: var(--kp-weight-bold, 700); }
+.kp-card-title em     { font-style: italic; }
+.kp-card-title code {
+  font-family: var(--kp-font-mono);
+  font-size: 0.92em;
+  padding: 0 4px;
+  background: var(--kp-bg-secondary);
+  border: 1px solid var(--kp-border);
+  border-radius: var(--kp-radius-xs);
+}
+.kp-card-title a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--kp-border-strong);
+}
+
+.kp-card-body {
+  font-size: 12.5px;
+  line-height: var(--kp-leading-normal);
+  color: var(--kp-text-muted);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+/* Done card — line-through title, no signal red, just quiet */
+.kp-card.is-done .kp-card-title {
+  color: var(--kp-text-muted);
+  text-decoration: line-through;
+  text-decoration-color: var(--kp-border-strong);
+  text-decoration-thickness: 1px;
+}
+
+.kp-card.is-done .kp-card-body {
+  color: var(--kp-text-faint);
+}
+
+/* ============================================================
+   Card completion toggle (always-visible checkbox)
+   ============================================================
+   C7 — The checkbox lives at the card's left edge and is rendered
+   in its full visual state on every card. The previous design
+   hid it (opacity:0) until hover, which on touch devices and on
+   first-paint scans made the affordance invisible. QA round 3 flagged
+   this; users reading the board can't see how to complete a card
+   until they happen to hover over it. We keep the absolute positioning
+   and z-index so the box can't be hijacked by the dnd-kit drag handle. */
+.kp-card-done-toggle {
+  position: absolute;
+  top: var(--kp-space-3);
+  left: -8px;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  padding: 0;
+  border-radius: 4px;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.kp-card-done-toggle:focus-visible {
+  outline: 2px solid var(--kp-accent-border);
+  outline-offset: 2px;
+}
+
+/* ============================================================
+   Inline editor (CM6 host + textarea fallback)
+   ============================================================
+   M1 — when the host CM6 fails to resolve we mount a plain <textarea>
+   inside `.inline-editor__host`. We style it to read as a normal inline
+   text input on a card, NOT as a monospaced dev preview. Font, line-height
+   and color all inherit from the card so the typing experience is visually
+   indistinguishable from the rendered title/body. */
+.inline-editor {
+  display: block;
+}
+
+.inline-editor__host {
+  display: block;
+}
+
+.kp-inline-fallback {
+  /* Match the card's body typography. Critically NOT monospace — the QA
+     pass described the old default as "monospaced textarea fallback" and
+     that's the artefact we're killing. */
+  font: inherit;
+  font-size: var(--kp-text-base);
+  line-height: 1.4;
+  color: var(--kp-text);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--kp-radius-sm);
+  width: 100%;
+  margin: 0;
+  padding: 2px 4px;
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+  letter-spacing: -0.003em;
+  /* Block-level CM6 hosts use line wrapping; mirror that here so long titles
+     wrap naturally on word boundaries rather than producing horizontal
+     scrollbars. */
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+.kp-inline-fallback::placeholder {
+  color: var(--kp-text-faint);
+}
+
+.kp-inline-fallback:focus-visible {
+  border-color: var(--kp-accent-border);
+  box-shadow: var(--kp-focus-ring);
+}
+
+/* ============================================================
+   Meta row
+   ============================================================ */
+.kp-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+}
+
+/* ============================================================
+   Due chip — neutral by default; semantic on soon/overdue/done
+   ============================================================ */
+.kp-due {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--kp-text-xs);
+  font-weight: var(--kp-weight-medium);
+  color: var(--kp-text-muted);
+  padding: 2px 6px 2px 4px;
+  border-radius: var(--kp-radius-xs);
+  background: var(--kp-bg-tertiary);
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.kp-due svg {
+  width: 11px;
+  height: 11px;
+  opacity: 0.7;
+}
+
+.kp-due.is-soon {
+  color: var(--kp-amber);
+  background: var(--kp-amber-soft);
+}
+
+.kp-due.is-overdue {
+  color: var(--kp-red);
+  background: var(--kp-red-soft);
+}
+
+.kp-due.is-done {
+  color: var(--kp-green);
+  background: var(--kp-green-soft);
+}
+
+.kp-due.is-soon svg,
+.kp-due.is-overdue svg,
+.kp-due.is-done svg {
+  opacity: 1;
+}
+
+/* ============================================================
+   Tag
+   ============================================================ */
+.kp-tag {
+  font-size: var(--kp-text-xs);
+  color: var(--kp-text-muted);
+  padding: 1px 6px 1px 4px;
+  background: var(--kp-bg-tertiary);
+  border-radius: var(--kp-radius-xs);
+  line-height: 1.4;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+.kp-tag::before {
+  content: '#';
+  opacity: 0.5;
+  margin-right: 1px;
+}
+
+.kp-tag.is-clickable {
+  cursor: pointer;
+  transition: background var(--kp-duration-fast) var(--kp-easing);
+}
+
+.kp-tag.is-clickable:hover {
+  background: var(--kp-bg-hover);
+  color: var(--kp-text);
+}
+
+/* ============================================================
+   C8 — Block-ID badge (e.g. `^card-a1b2`)
+   ============================================================
+   Cards can carry a stable `^block-id` for Obsidian block-links. The
+   parser captures it into `meta.blockId`; we surface it as a small
+   monospace pill in the meta row so it reads as a technical handle
+   rather than a content tag. */
+.kp-blockid {
+  font-family: var(--kp-font-mono);
+  font-size: var(--kp-text-xs);
+  color: var(--kp-text-faint);
+  padding: 1px 6px;
+  background: var(--kp-bg-tertiary);
+  border: 1px solid var(--kp-border);
+  border-radius: var(--kp-radius-xs);
+  line-height: 1.3;
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+}
+
+/* ============================================================
+   Assignee + avatar
+   ============================================================ */
+.kp-assignee {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.kp-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--kp-radius-full);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: var(--kp-weight-semi);
+  color: var(--kp-text);
+  background: var(--kp-bg-tertiary);
+  border: 1px solid var(--kp-border);
+  letter-spacing: -0.02em;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+/* Variant tints — driven by a hue token; the avatar tone follows
+   the same signal palette as due-chips so the visual system stays unified. */
+.kp-avatar.is-accent {
+  background: var(--kp-accent-soft);
+  color: var(--kp-accent);
+  border-color: var(--kp-accent-border);
+}
+.kp-avatar.is-green {
+  background: var(--kp-green-soft);
+  color: var(--kp-green);
+  border-color: var(--kp-green-border);
+}
+.kp-avatar.is-amber {
+  background: var(--kp-amber-soft);
+  color: var(--kp-amber);
+  border-color: var(--kp-amber-border);
+}
+.kp-avatar.is-red {
+  background: var(--kp-red-soft);
+  color: var(--kp-red);
+  border-color: var(--kp-red-border);
+}
+
+/* ============================================================
+   ico-flag — small inline indicator for template / recurrence
+   ============================================================ */
+.kp-ico-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--kp-space-1);
+  font-family: var(--kp-font-mono);
+  font-size: var(--kp-text-xs);
+  color: var(--kp-text-muted);
+}
+
+.kp-ico-flag svg {
+  width: 12px;
+  height: 12px;
+}
+
+.kp-ico-flag.is-template {
+  color: var(--kp-text-muted);
+}
+
+.kp-ico-flag.is-recur {
+  color: var(--kp-accent);
+}
+
+/* ============================================================
+   Active timer pill — quiet red with pulsing dot
+   ============================================================ */
+.kp-timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--kp-font-mono);
+  font-size: var(--kp-text-xs);
+  color: var(--kp-red);
+  padding: 2px 7px;
+  background: var(--kp-red-soft);
+  border-radius: var(--kp-radius-xs);
+  font-weight: var(--kp-weight-medium);
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.kp-timer .kp-pulse {
+  width: 6px;
+  height: 6px;
+  background: var(--kp-red);
+  border-radius: var(--kp-radius-full);
+  animation: kp-pulse 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes kp-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.35; }
+}
+
+/* ============================================================
+   Subtasks
+   ============================================================ */
+.kp-subtasks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-1);
+  padding-top: 6px;
+  border-top: 1px solid var(--kp-border);
+}
+
+.kp-subtask {
+  display: grid;
+  grid-template-columns: 13px 1fr;
+  gap: var(--kp-space-2);
+  align-items: center;
+  font-size: var(--kp-text-sm);
+  color: var(--kp-text-muted);
+  line-height: 1.4;
+}
+
+.kp-check {
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid var(--kp-border-strong);
+  border-radius: var(--kp-radius-xs);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--kp-accent);
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    border-color var(--kp-duration-fast) var(--kp-easing),
+    background var(--kp-duration-fast) var(--kp-easing);
+  padding: 0;
+}
+
+.kp-check:hover {
+  border-color: var(--kp-accent);
+}
+
+.kp-check.is-done {
+  border-color: var(--kp-accent);
+  background: var(--kp-accent);
+  color: var(--kp-accent-fg);
+}
+
+.kp-check.is-done svg {
+  width: 8px;
+  height: 8px;
+}
+
+.kp-subtask.is-done > span {
+  color: var(--kp-text-faint);
+  text-decoration: line-through;
+  text-decoration-color: var(--kp-border-strong);
+}
+
+/* ============================================================
+   Progress bar
+   ============================================================ */
+.kp-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--kp-space-2);
+  font-family: var(--kp-font-mono);
+  font-size: 10.5px;
+  color: var(--kp-text-faint);
+  padding-top: var(--kp-space-1);
+}
+
+.kp-progress-bar {
+  flex: 1;
+  height: 3px;
+  background: var(--kp-bg-tertiary);
+  border-radius: var(--kp-radius-full);
+  overflow: hidden;
+}
+
+.kp-progress-bar > i {
+  display: block;
+  height: 100%;
+  background: var(--kp-accent);
+  border-radius: var(--kp-radius-full);
+  transition: width var(--kp-duration-base) var(--kp-easing);
+}
+
+/* ============================================================
+   Selection / focus states
+   ============================================================ */
+.kp-card.is-selected {
+  border-color: var(--kp-accent);
+  box-shadow: var(--kp-focus-ring);
+}
+
+/* ============================================================
+   Accent stripe option (for Pro priority indicators, etc.)
+   Left edge accent without re-coloring the whole card.
+   ============================================================ */
+.kp-card.has-stripe {
+  padding-left: var(--kp-space-4);
+}
+
+.kp-card.has-stripe::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  border-radius: var(--kp-radius-full);
+  background: var(--kp-accent);
+}
+
+.kp-card.has-stripe.is-amber::before { background: var(--kp-amber); }
+.kp-card.has-stripe.is-red::before   { background: var(--kp-red); }
+.kp-card.has-stripe.is-green::before { background: var(--kp-green); }

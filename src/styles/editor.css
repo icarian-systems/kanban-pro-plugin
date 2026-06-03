@@ -1,0 +1,395 @@
+/* ============================================================
+   Kanban Pro — Inline editor + Detail panel
+   ============================================================
+   The InlineEditor and the DetailPanel modal both host an
+   Obsidian-provided CodeMirror 6 instance. We touch as little
+   as possible: only the chrome around CM6, never CM6 internals.
+   ============================================================ */
+
+/* ============================================================
+   Inline editor — replaces card title/body in place
+   ============================================================ */
+.kp-inline-editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-2);
+  width: 100%;
+  position: relative;
+}
+
+.kp-inline-editor-host {
+  /* Obsidian's CM6 mounts inside here. Keep our wrapper invisible. */
+  width: 100%;
+  font-size: var(--kp-text-base);
+  line-height: 1.45;
+  color: var(--kp-text);
+  background: transparent;
+  border-radius: var(--kp-radius-sm);
+}
+
+/* Mounted CM6 — minimal overrides; let Obsidian's editor theme drive */
+.kp-inline-editor-host .cm-editor {
+  background: transparent !important;
+  font-family: inherit;
+}
+
+.kp-inline-editor-host .cm-editor.cm-focused {
+  outline: none;
+}
+
+.kp-inline-editor-host .cm-scroller {
+  font-family: inherit;
+  font-size: var(--kp-text-base);
+  line-height: 1.45;
+}
+
+.kp-inline-editor-host .cm-content {
+  padding: 0 !important;
+  caret-color: var(--kp-accent);
+}
+
+.kp-inline-editor-host .cm-line {
+  padding: 0;
+}
+
+/* Wrap the editor on the card with a subtle accent border so the user
+   knows what's editable without crowding the design. */
+.kp-card.is-editing {
+  border-color: var(--kp-accent-border);
+  background: var(--kp-bg);
+  box-shadow: var(--kp-focus-ring);
+  cursor: text;
+}
+
+.kp-card.is-editing:active {
+  transform: none;
+  cursor: text;
+}
+
+/* Inline editor actions row (Save / Cancel) — only shown when needed;
+   default UX is commit-on-blur, so this is a fallback. */
+.kp-inline-editor-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--kp-space-2);
+  font-size: var(--kp-text-xs);
+  color: var(--kp-text-faint);
+}
+
+.kp-inline-editor-actions kbd {
+  font-family: var(--kp-font-mono);
+  font-size: 10px;
+  padding: 1px 4px;
+  background: var(--kp-bg-tertiary);
+  border: 1px solid var(--kp-border);
+  border-radius: var(--kp-radius-xs);
+  color: var(--kp-text-muted);
+}
+
+/* ============================================================
+   Detail Panel — full-card edit modal
+   ============================================================ */
+.kp-detail-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--kp-paywall-veil);
+  z-index: var(--kp-z-modal);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 64px var(--kp-space-5) var(--kp-space-5);
+  overflow-y: auto;
+  animation: kp-overlay-in var(--kp-duration-base) var(--kp-easing) both;
+}
+
+@keyframes kp-overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.kp-detail-panel {
+  width: min(720px, 100%);
+  background: var(--kp-bg);
+  border: 1px solid var(--kp-border);
+  border-radius: var(--kp-radius-xl);
+  box-shadow: var(--kp-shadow-modal);
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 96px);
+  animation: kp-modal-in var(--kp-duration-slow) var(--kp-easing) both;
+}
+
+@keyframes kp-modal-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.kp-detail-header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--kp-space-3);
+  padding: var(--kp-space-5) var(--kp-space-5) var(--kp-space-3);
+  border-bottom: 1px solid var(--kp-border);
+}
+
+.kp-detail-title {
+  flex: 1;
+  margin: 0;
+  font-size: var(--kp-text-xl);
+  font-weight: var(--kp-weight-semi);
+  color: var(--kp-text);
+  letter-spacing: -0.005em;
+  line-height: var(--kp-leading-snug);
+}
+
+.kp-detail-title[contenteditable="true"] {
+  outline: none;
+  border-radius: var(--kp-radius-sm);
+  padding: 2px 4px;
+  margin: -2px -4px;
+}
+
+.kp-detail-title[contenteditable="true"]:focus-visible {
+  background: var(--kp-bg-hover);
+}
+
+.kp-detail-close {
+  appearance: none;
+  background: transparent;
+  border: none;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--kp-text-muted);
+  cursor: pointer;
+  border-radius: var(--kp-radius-sm);
+  font-size: 18px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.kp-detail-close:hover {
+  background: var(--kp-bg-hover);
+  color: var(--kp-text);
+}
+
+.kp-detail-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--kp-space-4) var(--kp-space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-4);
+}
+
+.kp-detail-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-2);
+}
+
+.kp-detail-section-h {
+  font-size: var(--kp-text-xs);
+  color: var(--kp-text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: var(--kp-weight-medium);
+  margin: 0;
+}
+
+.kp-detail-fields {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: var(--kp-space-2) var(--kp-space-3);
+  align-items: center;
+  font-size: var(--kp-text-md);
+}
+
+.kp-detail-fields > dt {
+  color: var(--kp-text-muted);
+  font-weight: var(--kp-weight-regular);
+}
+
+.kp-detail-fields > dd {
+  margin: 0;
+  color: var(--kp-text);
+}
+
+/* CM6 inside the detail panel */
+.kp-detail-editor-host {
+  border: 1px solid var(--kp-border);
+  border-radius: var(--kp-radius);
+  background: var(--kp-bg);
+  min-height: 200px;
+  padding: var(--kp-space-3);
+  transition: border-color var(--kp-duration-fast) var(--kp-easing);
+}
+
+.kp-detail-editor-host:focus-within {
+  border-color: var(--kp-accent);
+  box-shadow: var(--kp-focus-ring);
+}
+
+.kp-detail-editor-host .cm-editor {
+  background: transparent !important;
+}
+
+.kp-detail-editor-host .cm-scroller {
+  font-family: var(--kp-font-ui);
+  font-size: var(--kp-text-md);
+  line-height: 1.55;
+}
+
+.kp-detail-editor-host .cm-content {
+  caret-color: var(--kp-accent);
+  padding: 0 !important;
+}
+
+/* Footer with primary actions */
+.kp-detail-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--kp-space-3);
+  padding: var(--kp-space-3) var(--kp-space-5);
+  border-top: 1px solid var(--kp-border);
+  background: var(--kp-bg-secondary);
+  border-radius: 0 0 var(--kp-radius-xl) var(--kp-radius-xl);
+  font-size: var(--kp-text-sm);
+  color: var(--kp-text-muted);
+}
+
+.kp-detail-footer .kp-actions {
+  display: flex;
+  gap: var(--kp-space-2);
+}
+
+/* ============================================================
+   Detail Panel — drawer variant (F14)
+   ------------------------------------------------------------
+   The base `.kp-detail-panel` is a centered modal; the drawer
+   variant slides in from the right and pins to the viewport
+   edge. On mobile (≤ 720px), it falls back to a full-width
+   sheet so it stays touch-reachable.
+   ============================================================ */
+.kp-detail-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--kp-paywall-veil);
+  z-index: var(--kp-z-modal);
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+  padding: 0;
+  overflow: hidden;
+  animation: kp-overlay-in var(--kp-duration-base) var(--kp-easing) both;
+}
+
+.kp-detail-panel--drawer {
+  width: min(420px, 100%);
+  max-height: 100vh;
+  height: 100%;
+  border-radius: 0;
+  border-right: none;
+  border-top: none;
+  border-bottom: none;
+  border-left: 1px solid var(--kp-border);
+  box-shadow: var(--kp-shadow-modal);
+  animation: kp-drawer-in var(--kp-duration-base) var(--kp-easing) both;
+}
+
+@keyframes kp-drawer-in {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Mobile-first fallback — let the drawer occupy the full viewport
+   so the close button stays reachable on a narrow phone. */
+@media (max-width: 720px) {
+  .kp-detail-panel--drawer {
+    width: 100%;
+    max-width: none;
+    border-left: none;
+    border-radius: 0;
+  }
+}
+
+/* ============================================================
+   Detail section headers
+   ------------------------------------------------------------
+   Each `.kp-detail-section-h` is a small uppercase eyebrow.
+   The `--with-chip` modifier turns it into a flex row so a
+   `.kp-pro-chip` can ride beside it without collapsing the
+   header text (F15).
+   ============================================================ */
+.kp-detail-section-h--with-chip {
+  display: flex;
+  align-items: center;
+  gap: var(--kp-space-2);
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: var(--kp-text-md);
+  color: var(--kp-text);
+}
+
+.kp-detail-section-h--with-chip .kp-pro-chip {
+  margin-left: 0;
+}
+
+/* ============================================================
+   Detail panel — generic input style + subtasks editor
+   ============================================================ */
+.kp-input {
+  appearance: none;
+  width: 100%;
+  background: var(--kp-bg);
+  border: 1px solid var(--kp-border-strong);
+  color: var(--kp-text);
+  font: inherit;
+  font-size: var(--kp-text-md);
+  padding: 6px var(--kp-space-3);
+  border-radius: var(--kp-radius-sm);
+  transition:
+    border-color var(--kp-duration-fast) var(--kp-easing),
+    box-shadow var(--kp-duration-fast) var(--kp-easing);
+}
+
+.kp-input:hover { border-color: var(--kp-border-focus); }
+.kp-input:focus-visible {
+  border-color: var(--kp-accent);
+  box-shadow: var(--kp-focus-ring);
+  outline: none;
+}
+
+.kp-detail-subtasks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-2);
+}
+
+.kp-detail-subtasks .kp-subtask {
+  grid-template-columns: 16px 1fr auto;
+}
+
+.kp-detail-subtasks__text {
+  font-size: var(--kp-text-md);
+}
+
+.kp-detail-subtasks__delete {
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: var(--kp-text-faint);
+  cursor: pointer;
+  padding: 2px var(--kp-space-1);
+  border-radius: var(--kp-radius-xs);
+  font-size: 16px;
+  line-height: 1;
+}
+
+.kp-detail-subtasks__delete:hover {
+  color: var(--kp-red);
+  background: var(--kp-bg-hover);
+}

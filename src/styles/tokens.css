@@ -1,0 +1,248 @@
+/* ============================================================
+   Kanban Pro — Design Tokens
+   ============================================================
+   This is the ONLY file in the plugin that contains raw color,
+   spacing, radius, and motion values. Every other CSS file MUST
+   consume these tokens via `var(--kp-*)`.
+
+   Tokens map Obsidian host CSS variables (--background-primary,
+   --color-accent, etc.) into a stable, plugin-owned namespace
+   so we get light/dark + custom themes "for free".
+   ============================================================ */
+
+.kp-root,
+.kp-shell,
+.workspace-leaf-content[data-type="kanban-pro"],
+.markdown-rendered .kp-embed,
+.kp-onboarding-modal {
+  /* ---------------------------------------------------------
+     Surfaces — Obsidian-bound
+     --------------------------------------------------------- */
+  --kp-bg:                 var(--background-primary);
+  --kp-bg-secondary:       var(--background-secondary);
+  --kp-bg-tertiary:        var(--background-secondary-alt, var(--background-secondary));
+  --kp-bg-hover:           var(--background-modifier-hover);
+  --kp-bg-active:          var(--background-modifier-active-hover, var(--background-modifier-hover));
+
+  --kp-border:             var(--background-modifier-border);
+  --kp-border-strong:      var(--background-modifier-border-hover, var(--background-modifier-border));
+  --kp-border-focus:       var(--background-modifier-border-focus, var(--interactive-accent));
+
+  /* ---------------------------------------------------------
+     Text — Obsidian-bound
+     --------------------------------------------------------- */
+  --kp-text:               var(--text-normal);
+  --kp-text-muted:         var(--text-muted);
+  --kp-text-faint:         var(--text-faint);
+  --kp-text-on-accent:     var(--text-on-accent);
+
+  /* ---------------------------------------------------------
+     Accent — single restrained accent, follows Obsidian theme
+     --------------------------------------------------------- */
+  --kp-accent:             var(--interactive-accent);
+  --kp-accent-hover:       var(--interactive-accent-hover);
+  --kp-accent-fg:          var(--text-on-accent);
+
+  /* color-mix gives us soft-tinted backgrounds that stay accent-true
+     across light, dark, and custom Obsidian themes. */
+  --kp-accent-soft:        color-mix(in srgb, var(--interactive-accent) 8%, transparent);
+  --kp-accent-soft-2:      color-mix(in srgb, var(--interactive-accent) 4%, transparent);
+  --kp-accent-border:      color-mix(in srgb, var(--interactive-accent) 20%, transparent);
+
+  /* ---------------------------------------------------------
+     Signal colors — bound to Obsidian's status palette
+     --------------------------------------------------------- */
+  --kp-amber:              var(--color-yellow, var(--color-orange));
+  --kp-amber-soft:         color-mix(in srgb, var(--color-yellow, var(--color-orange)) 10%, transparent);
+  --kp-amber-border:       color-mix(in srgb, var(--color-yellow, var(--color-orange)) 24%, transparent);
+
+  --kp-red:                var(--color-red);
+  --kp-red-soft:           color-mix(in srgb, var(--color-red) 10%, transparent);
+  --kp-red-border:         color-mix(in srgb, var(--color-red) 24%, transparent);
+
+  --kp-green:              var(--color-green);
+  --kp-green-soft:         color-mix(in srgb, var(--color-green) 10%, transparent);
+  --kp-green-border:       color-mix(in srgb, var(--color-green) 24%, transparent);
+
+  --kp-blue:               var(--color-blue, var(--interactive-accent));
+  --kp-blue-soft:          color-mix(in srgb, var(--color-blue, var(--interactive-accent)) 10%, transparent);
+
+  /* ---------------------------------------------------------
+     Kanban-specific semantic tokens
+     --------------------------------------------------------- */
+  --kp-card-bg:            var(--kp-bg);
+  --kp-card-bg-hover:      var(--kp-bg);
+  --kp-card-bg-dragging:   var(--kp-bg);
+  --kp-card-border:        var(--kp-border);
+  --kp-card-border-hover:  var(--kp-border-strong);
+
+  --kp-lane-bg:            transparent;
+  --kp-lane-collapsed-bg:  var(--kp-bg-secondary);
+  --kp-lane-shipped-opacity: 0.7;
+
+  --kp-drop-indicator:     var(--kp-accent);
+  --kp-drag-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 8px 24px -8px rgba(0, 0, 0, 0.18);
+
+  --kp-paywall-veil:       color-mix(in srgb, var(--background-primary) 78%, transparent);
+  --kp-paywall-tint:       color-mix(in srgb, var(--interactive-accent) 5%, transparent);
+
+  /* ---------------------------------------------------------
+     Spacing — 4px grid
+     --------------------------------------------------------- */
+  --kp-space-0:  0;
+  --kp-space-1:  4px;
+  --kp-space-2:  8px;
+  --kp-space-3:  12px;
+  --kp-space-4:  16px;
+  --kp-space-5:  20px;
+  --kp-space-6:  24px;
+  --kp-space-7:  32px;
+  --kp-space-8:  48px;
+
+  /* ---------------------------------------------------------
+     Radius — tight, 4/6/8/10
+     --------------------------------------------------------- */
+  --kp-radius-xs: 2px;
+  --kp-radius-sm: 4px;
+  --kp-radius:    6px;
+  --kp-radius-lg: 8px;
+  --kp-radius-xl: 10px;
+  --kp-radius-full: 9999px;
+
+  /* ---------------------------------------------------------
+     Typography — system + Obsidian defaults only
+     We never @import web fonts: that breaks on mobile.
+     --------------------------------------------------------- */
+  --kp-font-ui:
+    var(--font-interface,
+      -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI",
+      Roboto, Helvetica, Arial, sans-serif);
+  --kp-font-mono:
+    var(--font-monospace,
+      ui-monospace, SFMono-Regular, "JetBrains Mono",
+      "SF Mono", Menlo, Consolas, monospace);
+
+  --kp-text-xs:   11px;
+  --kp-text-sm:   12px;
+  --kp-text-md:   13px;
+  --kp-text-base: 13.5px;
+  --kp-text-lg:   14px;
+  --kp-text-xl:   16px;
+  --kp-text-2xl:  20px;
+  --kp-text-3xl:  26px;
+
+  --kp-leading-tight:  1.2;
+  --kp-leading-snug:   1.35;
+  --kp-leading-normal: 1.5;
+
+  --kp-weight-regular: 400;
+  --kp-weight-medium:  500;
+  --kp-weight-semi:    600;
+  --kp-weight-bold:    700;
+
+  /* ---------------------------------------------------------
+     Shadows — Kanban-owned, theme-agnostic (rgba on black)
+     --------------------------------------------------------- */
+  --kp-shadow-card:
+    0 1px 2px rgba(0, 0, 0, 0.04);
+  --kp-shadow-card-hover:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 4px 12px -6px rgba(0, 0, 0, 0.08);
+  --kp-shadow-floating:
+    0 1px 2px rgba(0, 0, 0, 0.06),
+    0 12px 32px -10px rgba(0, 0, 0, 0.22);
+  --kp-shadow-modal:
+    0 2px 4px rgba(0, 0, 0, 0.08),
+    0 24px 56px -16px rgba(0, 0, 0, 0.32);
+
+  /* ---------------------------------------------------------
+     Motion
+     --------------------------------------------------------- */
+  --kp-easing:        cubic-bezier(0.2, 0.7, 0.3, 1);
+  --kp-easing-in:     cubic-bezier(0.4, 0, 1, 1);
+  --kp-easing-out:    cubic-bezier(0, 0, 0.2, 1);
+
+  --kp-duration-instant: 80ms;
+  --kp-duration-fast:    120ms;
+  --kp-duration-base:    180ms;
+  --kp-duration-slow:    320ms;
+  --kp-duration-rise:    600ms;
+
+  /* ---------------------------------------------------------
+     Layout
+     --------------------------------------------------------- */
+  --kp-lane-width:           286px;
+  --kp-lane-width-collapsed: 44px;
+  --kp-lane-gap:             16px;
+  --kp-card-gap:             8px;
+  --kp-board-padding-y:      28px;
+  --kp-board-padding-x:      32px;
+
+  --kp-z-base:        0;
+  --kp-z-sticky:      10;
+  --kp-z-drag:        100;
+  --kp-z-banner:      200;
+  --kp-z-popover:     500;
+  --kp-z-modal:       1000;
+  --kp-z-toast:       1500;
+
+  /* ---------------------------------------------------------
+     Focus rings — accent-bound, theme-aware
+     --------------------------------------------------------- */
+  --kp-focus-ring:        0 0 0 2px color-mix(in srgb, var(--interactive-accent) 40%, transparent);
+  --kp-focus-ring-strong: 0 0 0 2px var(--interactive-accent);
+}
+
+/* ============================================================
+   Dark theme nudges
+   ------------------------------------------------------------
+   Most tokens already resolve correctly via Obsidian's vars.
+   The ones below need *Kanban-specific* tweaks because they
+   compound rgba shadows against a dark background.
+   ============================================================ */
+body.theme-dark .kp-root,
+body.theme-dark .kp-shell,
+body.theme-dark .workspace-leaf-content[data-type="kanban-pro"],
+body.theme-dark .markdown-rendered .kp-embed {
+  --kp-shadow-card:
+    0 1px 2px rgba(0, 0, 0, 0.4);
+  --kp-shadow-card-hover:
+    0 1px 2px rgba(0, 0, 0, 0.4),
+    0 4px 12px -6px rgba(0, 0, 0, 0.55);
+  --kp-shadow-floating:
+    0 1px 2px rgba(0, 0, 0, 0.5),
+    0 12px 32px -10px rgba(0, 0, 0, 0.7);
+  --kp-shadow-modal:
+    0 2px 4px rgba(0, 0, 0, 0.6),
+    0 24px 56px -16px rgba(0, 0, 0, 0.85);
+
+  --kp-drag-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.45),
+    0 8px 24px -8px rgba(0, 0, 0, 0.7);
+
+  --kp-paywall-veil: color-mix(in srgb, var(--background-primary) 72%, transparent);
+
+  /* Soft-tint backgrounds need a bit more saturation in dark mode
+     to maintain perceived contrast. */
+  --kp-accent-soft:   color-mix(in srgb, var(--interactive-accent) 14%, transparent);
+  --kp-accent-soft-2: color-mix(in srgb, var(--interactive-accent) 7%, transparent);
+  --kp-amber-soft:    color-mix(in srgb, var(--color-yellow, var(--color-orange)) 16%, transparent);
+  --kp-red-soft:      color-mix(in srgb, var(--color-red) 16%, transparent);
+  --kp-green-soft:    color-mix(in srgb, var(--color-green) 16%, transparent);
+  --kp-blue-soft:     color-mix(in srgb, var(--color-blue, var(--interactive-accent)) 16%, transparent);
+}
+
+/* ============================================================
+   High-contrast preference
+   ============================================================ */
+@media (prefers-contrast: more) {
+  .kp-root,
+  .workspace-leaf-content[data-type="kanban-pro"] {
+    --kp-border:          var(--text-muted);
+    --kp-border-strong:   var(--text-normal);
+    --kp-card-border:     var(--text-muted);
+    --kp-focus-ring:      0 0 0 2px var(--interactive-accent);
+  }
+}

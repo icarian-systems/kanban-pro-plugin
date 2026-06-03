@@ -1,0 +1,49 @@
+/* ============================================================
+   Kanban Pro — Shell
+   ============================================================
+   Outer two-column flex container that hosts the board (main) and
+   the optional right rail (`<aside class="kp-rail">`). The shell
+   replaces the old single-column root so the rail can live INSIDE
+   the leaf's .view-content without colliding with Obsidian's own
+   workspace right sidebar.
+   ============================================================ */
+
+.kp-shell {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+  background: var(--kp-bg);
+}
+
+/* The board surface fills available width to the left of the rail.
+   `min-width: 0` is critical — without it, a flex child won't shrink
+   below its intrinsic content size, which causes the horizontal lanes
+   scroller to expand the parent rather than overflow. */
+.kp-shell > .kp-root.kp-board {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* When the shell hosts no rail (e.g. an embedded board in a markdown
+   note) the board claims the full width without an internal divider. */
+.kp-shell.is-railless > .kp-root.kp-board {
+  width: 100%;
+}
+
+/* The rail itself is fixed-width and never grows; CSS in rail.css
+   handles its internal layout. The `flex-shrink: 0` keeps it from
+   collapsing when the board content pushes the row wider. */
+.kp-shell > .kp-rail {
+  flex: 0 0 var(--kp-rail-width, 260px);
+  width: var(--kp-rail-width, 260px);
+}
+
+/* Responsive collapse — at narrow widths the rail folds away to
+   give the lanes the full canvas. Matches the mockup's 1100px break. */
+@media (max-width: 1100px) {
+  .kp-shell > .kp-rail { display: none; }
+}

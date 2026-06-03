@@ -1,0 +1,167 @@
+/* ============================================================
+   Kanban Pro — Sync recovery diff view
+   ============================================================
+   Inline unified diff shown when SyncRecoveryBanner's "Show diff"
+   button is clicked.
+
+   Color rules:
+     - removed lines (only in local memory) → red tint
+     - added lines (only on disk)            → green tint
+     - equal lines                           → no tint
+   All colors are bound to Obsidian's semantic vars.
+   ============================================================ */
+
+.kp-recovery-diff {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-3);
+  background: var(--kp-bg);
+  border: 1px solid var(--kp-border);
+  border-radius: var(--kp-radius-lg);
+  box-shadow: var(--kp-shadow-modal);
+  font-family: var(--kp-font-ui);
+  color: var(--kp-text);
+  max-width: min(820px, 100%);
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.kp-recovery-diff__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-2);
+  padding: var(--kp-space-4) var(--kp-space-5) var(--kp-space-3);
+  border-bottom: 1px solid var(--kp-border);
+}
+
+.kp-recovery-diff__title {
+  margin: 0;
+  font-size: var(--kp-text-xl);
+  font-weight: var(--kp-weight-semi);
+}
+
+.kp-recovery-diff__summary {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--kp-space-2);
+  font-size: var(--kp-text-sm);
+  color: var(--kp-text-muted);
+}
+
+.kp-recovery-diff__count {
+  font-family: var(--kp-font-mono);
+  font-weight: var(--kp-weight-semi);
+  font-variant-numeric: tabular-nums;
+}
+
+.kp-recovery-diff__count--add    { color: var(--kp-green); }
+.kp-recovery-diff__count--remove { color: var(--kp-red); }
+
+.kp-recovery-diff__hint {
+  flex: 1 1 240px;
+  color: var(--kp-text-faint);
+  font-size: var(--kp-text-xs);
+}
+
+.kp-recovery-diff__body {
+  max-height: 60vh;
+  overflow: auto;
+  background: var(--kp-bg-secondary);
+  border-top: 1px solid var(--kp-border);
+  border-bottom: 1px solid var(--kp-border);
+}
+
+.kp-recovery-diff__hunk {
+  margin: 0;
+  padding: var(--kp-space-2) 0;
+  font-family: var(--kp-font-mono);
+  font-size: var(--kp-text-sm);
+  line-height: 1.55;
+  white-space: pre-wrap;
+  color: var(--kp-text);
+}
+
+.kp-recovery-diff__line {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  padding: 0 var(--kp-space-3);
+  min-height: 1.55em;
+}
+
+.kp-recovery-diff__line--add {
+  background: var(--kp-green-soft);
+}
+
+.kp-recovery-diff__line--remove {
+  background: var(--kp-red-soft);
+}
+
+.kp-recovery-diff__line--add .kp-recovery-diff__sigil {
+  color: var(--kp-green);
+}
+
+.kp-recovery-diff__line--remove .kp-recovery-diff__sigil {
+  color: var(--kp-red);
+}
+
+.kp-recovery-diff__sigil {
+  text-align: center;
+  user-select: none;
+  color: var(--kp-text-faint);
+}
+
+.kp-recovery-diff__text {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.kp-recovery-diff__fold {
+  text-align: center;
+  font-style: italic;
+  color: var(--kp-text-faint);
+  font-size: var(--kp-text-xs);
+  padding: var(--kp-space-1) 0;
+  background: var(--kp-bg-tertiary);
+}
+
+.kp-recovery-diff__foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--kp-space-2);
+  padding: var(--kp-space-3) var(--kp-space-5);
+  justify-content: flex-end;
+  background: var(--kp-bg-secondary);
+}
+
+.kp-recovery-diff__action {
+  appearance: none;
+  padding: var(--kp-space-2) var(--kp-space-4);
+  border-radius: var(--kp-radius);
+  background: var(--kp-accent);
+  color: var(--kp-accent-fg);
+  border: 1px solid transparent;
+  font-family: inherit;
+  font-size: var(--kp-text-md);
+  font-weight: var(--kp-weight-medium);
+  cursor: pointer;
+  transition:
+    background var(--kp-duration-fast) var(--kp-easing),
+    border-color var(--kp-duration-fast) var(--kp-easing);
+}
+
+.kp-recovery-diff__action:hover {
+  background: var(--kp-accent-hover);
+}
+
+.kp-recovery-diff__action--ghost {
+  background: transparent;
+  color: var(--kp-text);
+  border-color: var(--kp-border);
+}
+
+.kp-recovery-diff__action--ghost:hover {
+  background: var(--kp-bg-hover);
+  border-color: var(--kp-border-strong);
+}

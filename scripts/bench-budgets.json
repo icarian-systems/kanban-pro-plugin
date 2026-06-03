@@ -1,0 +1,19 @@
+{
+  "$comment": "Machine-readable form of the architectural budgets in docs/ARCHITECTURE.md. CI gates, not warnings. Regressions fail the build.",
+  "coldOpen1000Cards": {
+    "desktop": { "maxMs": 800 },
+    "mobile":  { "maxMs": 1500 }
+  },
+  "scrollFps": {
+    "desktop": { "minFps": 55 },
+    "mobile":  { "minFps": 45 }
+  },
+  "dragLatency": {
+    "desktop": { "maxMs": 16 },
+    "mobile":  { "maxMs": 33 }
+  },
+  "bundleSizeGz": {
+    "freeKB": 350,
+    "proKB":  250
+  }
+}

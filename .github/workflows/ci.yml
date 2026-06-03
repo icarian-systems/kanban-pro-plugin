@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: typecheck + lint + test + bundle size
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      # On regular PR / main builds this just warns when keys.ts still
+      # holds the placeholder. On a release tag (refs/tags/v*) it runs in
+      # --strict mode and fails the build — that's the release gate.
+      - name: Check production keys
+        run: node scripts/checkProductionKeys.mjs ${{ startsWith(github.ref, 'refs/tags/v') && '--strict' || '' }}
+
+      - name: Build
+        run: npm run build
+
+      - name: Bundle size (free tier)
+        run: node scripts/bundleSize.mjs
+
+      # Bench is a HARD gate post-Alpha. The parser has landed and the
+      # budget has been observed stable, so any regression on cold-open
+      # 1000 cards fails the build. Budgets live in scripts/bench-budgets.json.
+      # Branch protection should require this job to pass.
+      - name: Bench (cold-open 1000 cards) — hard gate
+        id: bench
+        run: node scripts/bench.mjs
+
+      - name: Comment bench result on PR
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let body = '### Bench (cold-open 1000 cards)\n\n';
+            try {
+              const r = JSON.parse(fs.readFileSync('bench-results.json', 'utf8'));
+              body += `target=${r.target} median=${r.medianMs.toFixed(2)}ms p95=${r.p95Ms.toFixed(2)}ms budget=${r.budgetMs}ms → ${r.passed ? 'PASS' : 'FAIL'}\n`;
+            } catch (e) {
+              body += '_bench skipped: parser not built yet_\n';
+            }
+            const { owner, repo } = context.repo;
+            const number = context.payload.pull_request.number;
+            const { data: comments } = await github.rest.issues.listComments({ owner, repo, issue_number: number });
+            const existing = comments.find((c) => c.user.type === 'Bot' && c.body.startsWith('### Bench'));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number: number, body });
+            }
+
+  lifecycle-leaks:
+    name: lifecycle leak check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+          cache: npm
+      - name: Install
+        run: npm ci
+      - name: Leak check
+        run: node scripts/checkLeaks.mjs

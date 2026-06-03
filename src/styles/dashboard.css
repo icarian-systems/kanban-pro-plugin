@@ -1,0 +1,327 @@
+/* ============================================================
+   Kanban Pro — Dashboard view
+   ============================================================
+   Multi-board roll-up surface. Mounts via DashboardView (Pro).
+   Composes:
+     - .kp-dashboard__overview  → KPI cards
+     - .kp-dashboard__filters   → FilterBar
+     - .kp-dashboard__list      → BoardCard tiles
+   ============================================================ */
+
+.kp-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-5);
+  padding: var(--kp-board-padding-y) var(--kp-board-padding-x);
+  font-family: var(--kp-font-ui);
+  color: var(--kp-text);
+  background: var(--kp-bg);
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+.kp-dashboard__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--kp-space-4);
+}
+
+.kp-dashboard__title {
+  margin: 0;
+  font-size: var(--kp-text-3xl);
+  letter-spacing: -0.01em;
+  font-weight: var(--kp-weight-semi);
+}
+
+.kp-dashboard__refresh {
+  appearance: none;
+  background: var(--kp-bg-secondary);
+  color: var(--kp-text);
+  border: 1px solid var(--kp-border);
+  border-radius: var(--kp-radius);
+  padding: var(--kp-space-2) var(--kp-space-3);
+  font-size: var(--kp-text-sm);
+  cursor: pointer;
+  transition: background var(--kp-duration-fast) var(--kp-easing);
+}
+
+.kp-dashboard__refresh:hover {
+  background: var(--kp-bg-hover);
+}
+
+/* ---------- Overview KPI panel --------------------------------- */
+
+.kp-dashboard__overview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--kp-space-3);
+}
+
+.kp-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-1);
+  padding: var(--kp-space-4);
+  background: var(--kp-bg-secondary);
+  border: 1px solid var(--kp-border);
+  border-radius: var(--kp-radius-lg);
+  box-shadow: var(--kp-shadow-card);
+}
+
+.kp-kpi__value {
+  font-size: var(--kp-text-3xl);
+  font-weight: var(--kp-weight-semi);
+  letter-spacing: -0.01em;
+  line-height: var(--kp-leading-tight);
+  color: var(--kp-text);
+}
+
+.kp-kpi__label {
+  font-size: var(--kp-text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: var(--kp-weight-medium);
+  color: var(--kp-text-muted);
+}
+
+.kp-kpi__hint {
+  font-size: var(--kp-text-xs);
+  color: var(--kp-text-faint);
+}
+
+.kp-kpi--alert .kp-kpi__value { color: var(--kp-red); }
+.kp-kpi--alert { background: var(--kp-red-soft); border-color: var(--kp-red-border); }
+
+.kp-kpi--warn .kp-kpi__value { color: var(--kp-amber); }
+.kp-kpi--warn { background: var(--kp-amber-soft); border-color: var(--kp-amber-border); }
+
+.kp-kpi--ok .kp-kpi__value { color: var(--kp-green); }
+.kp-kpi--ok { background: var(--kp-green-soft); border-color: var(--kp-green-border); }
+
+/* ---------- Filters -------------------------------------------- */
+
+.kp-dashboard__filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-3);
+  padding: var(--kp-space-3) var(--kp-space-4);
+  background: var(--kp-bg-secondary);
+  border: 1px solid var(--kp-border);
+  border-radius: var(--kp-radius-lg);
+}
+
+.kp-dashboard__filters-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--kp-space-3);
+}
+
+.kp-dashboard__filter {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-1);
+  font-size: var(--kp-text-sm);
+  color: var(--kp-text-muted);
+  min-width: 140px;
+  flex: 1 1 160px;
+}
+
+.kp-dashboard__filter-label {
+  font-size: var(--kp-text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: var(--kp-weight-medium);
+}
+
+.kp-dashboard__filter-input,
+.kp-dashboard__filter-select {
+  appearance: none;
+  background: var(--kp-bg);
+  color: var(--kp-text);
+  border: 1px solid var(--kp-border);
+  border-radius: var(--kp-radius);
+  padding: var(--kp-space-2) var(--kp-space-3);
+  font-size: var(--kp-text-md);
+  font-family: inherit;
+  transition: border-color var(--kp-duration-fast) var(--kp-easing),
+              box-shadow var(--kp-duration-fast) var(--kp-easing);
+}
+
+.kp-dashboard__filter-input:focus,
+.kp-dashboard__filter-select:focus {
+  outline: none;
+  border-color: var(--kp-accent);
+  box-shadow: var(--kp-focus-ring);
+}
+
+.kp-dashboard__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--kp-space-1);
+  padding-top: var(--kp-space-1);
+}
+
+.kp-dashboard__tag {
+  appearance: none;
+  background: var(--kp-bg);
+  border: 1px solid var(--kp-border);
+  color: var(--kp-text-muted);
+  border-radius: var(--kp-radius-full);
+  padding: 2px var(--kp-space-2);
+  font-size: var(--kp-text-xs);
+  cursor: pointer;
+  font-family: inherit;
+  transition: background var(--kp-duration-fast) var(--kp-easing),
+              color var(--kp-duration-fast) var(--kp-easing);
+}
+
+.kp-dashboard__tag:hover {
+  background: var(--kp-bg-hover);
+  color: var(--kp-text);
+}
+
+.kp-dashboard__tag.is-active {
+  background: var(--kp-accent-soft);
+  border-color: var(--kp-accent-border);
+  color: var(--kp-accent);
+}
+
+/* ---------- Board card list ------------------------------------ */
+
+.kp-dashboard__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--kp-space-3);
+}
+
+.kp-dashboard__empty {
+  padding: var(--kp-space-7) var(--kp-space-4);
+  text-align: center;
+  color: var(--kp-text-muted);
+  background: var(--kp-bg-secondary);
+  border: 1px dashed var(--kp-border);
+  border-radius: var(--kp-radius-lg);
+}
+
+.kp-board-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-2);
+  padding: var(--kp-space-4);
+  background: var(--kp-card-bg);
+  border: 1px solid var(--kp-card-border);
+  border-radius: var(--kp-radius-lg);
+  box-shadow: var(--kp-shadow-card);
+  cursor: pointer;
+  transition:
+    transform var(--kp-duration-fast) var(--kp-easing),
+    box-shadow var(--kp-duration-fast) var(--kp-easing),
+    border-color var(--kp-duration-fast) var(--kp-easing);
+  user-select: none;
+}
+
+.kp-board-card:hover,
+.kp-board-card:focus-visible {
+  border-color: var(--kp-card-border-hover);
+  box-shadow: var(--kp-shadow-card-hover);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.kp-board-card:focus-visible {
+  box-shadow: var(--kp-shadow-card-hover), var(--kp-focus-ring);
+}
+
+.kp-board-card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--kp-space-2);
+}
+
+.kp-board-card__title {
+  margin: 0;
+  font-size: var(--kp-text-lg);
+  font-weight: var(--kp-weight-semi);
+  color: var(--kp-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kp-board-card__mtime {
+  flex-shrink: 0;
+  font-size: var(--kp-text-xs);
+  color: var(--kp-text-faint);
+}
+
+.kp-board-card__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--kp-space-2);
+  font-size: var(--kp-text-sm);
+  color: var(--kp-text-muted);
+}
+
+.kp-board-card__stat strong {
+  color: var(--kp-text);
+  font-weight: var(--kp-weight-semi);
+  margin-right: 2px;
+}
+
+.kp-board-card__stat--alert strong { color: var(--kp-red); }
+.kp-board-card__stat--warn strong  { color: var(--kp-amber); }
+.kp-board-card__stat--ok strong    { color: var(--kp-green); }
+
+.kp-board-card__lanes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--kp-space-1);
+}
+
+.kp-board-card__lane {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px var(--kp-space-2);
+  border-radius: var(--kp-radius-full);
+  background: var(--kp-bg-secondary);
+  font-size: var(--kp-text-xs);
+  color: var(--kp-text-muted);
+}
+
+.kp-board-card__lane-count {
+  font-weight: var(--kp-weight-semi);
+  color: var(--kp-text);
+}
+
+.kp-board-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--kp-space-1);
+}
+
+.kp-board-card__tag {
+  font-size: var(--kp-text-xs);
+  color: var(--kp-text-muted);
+  background: var(--kp-bg-secondary);
+  padding: 1px var(--kp-space-2);
+  border-radius: var(--kp-radius-full);
+}
+
+.kp-board-card__tag--more {
+  color: var(--kp-text-faint);
+}
+
+.kp-board-card__path {
+  font-size: var(--kp-text-xs);
+  color: var(--kp-text-faint);
+  font-family: var(--kp-font-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

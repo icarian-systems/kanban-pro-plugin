@@ -1,0 +1,190 @@
+(* ============================================================
+   Kanban Pro — Inline Metadata Grammar
+   --------------------------------------------------------------
+   Spec ID: P-01 EBNF spec
+   Scope:   tokens that may appear inside the *text* of a Kanban
+            card or subtask (i.e. inside a GFM task-list-item
+            paragraph). This document is the authoritative grammar
+            for `src/core/parser/inlineMeta.ts`.
+
+   The on-disk file format itself (frontmatter, `## Lane` headings,
+   task-list items, `**Complete**` lane marker, archive section,
+   `%% kanban:settings %%` block) is **byte-for-byte** the format
+   of `mgmeyers/obsidian-kanban` and is documented in
+   `docs/ARCHITECTURE.md` → "File-format compatibility". This file
+   covers only the *inline* vocabulary used inside card text.
+
+   Notation: ISO/IEC 14977 EBNF.
+     ,   concatenation
+     |   alternation
+     [ ] optional
+     { } zero-or-more
+     ( ) grouping
+     (* *) comments
+   Terminals are quoted. Character classes use ASCII semantics
+   unless noted (Tags allow Unicode letters per Obsidian).
+   ============================================================ *)
+
+
+(* ----- Top-level: a card's text is a stream of segments ----- *)
+
+CardText      = { Segment } ;
+Segment       = InlineToken | LiteralRun ;
+LiteralRun    = NonTokenChar , { NonTokenChar } ;   (* any text that
+                                                       does not start
+                                                       an InlineToken *)
+
+(* The parser is greedy/left-to-right. A '@', '#', '^', '[', or an
+   emoji from EmojiTrigger starts a tokenization attempt; if the
+   attempt fails to match a valid InlineToken, the leading char is
+   emitted as part of a LiteralRun and scanning resumes at +1. *)
+
+
+(* ----- Inline token vocabulary --------------------------------- *)
+
+InlineToken   = DueDate
+              | Time
+              | Tag
+              | BlockId
+              | DataviewField
+              | EmojiToken ;
+
+
+(* ----- @{YYYY-MM-DD} — due date (Kanban native) ---------------- *)
+
+DueDate       = "@{" , IsoDate , "}" ;
+IsoDate       = Year , "-" , Month , "-" , Day ;
+Year          = Digit , Digit , Digit , Digit ;
+Month         = Digit , Digit ;            (* 01..12, validated *)
+Day           = Digit , Digit ;            (* 01..31, validated *)
+
+
+(* ----- @@{HH:mm} — time of day (Kanban native) ---------------- *)
+
+Time          = "@@{" , Hour , ":" , Minute , "}" ;
+Hour          = Digit , Digit ;            (* 00..23, validated *)
+Minute        = Digit , Digit ;            (* 00..59, validated *)
+
+
+(* ----- #tag — Obsidian tag ------------------------------------ *)
+(* Obsidian tag rules: must contain at least one non-digit
+   character; allowed chars are Unicode letters, digits, '_', '-',
+   '/'. A '#' followed only by digits is NOT a tag. Tags are
+   terminated by whitespace or any other non-tag-char. *)
+
+Tag           = "#" , TagBody ;
+TagBody       = TagChar , { TagChar } ;    (* must include >=1 non-digit *)
+TagChar       = UnicodeLetter | Digit | "_" | "-" | "/" ;
+
+
+(* ----- ^blockid — Obsidian block reference --------------------- *)
+(* Obsidian's spec: ^ followed by [A-Za-z0-9-]+ at end of a line or
+   followed by whitespace. *)
+
+BlockId       = "^" , BlockIdBody ;
+BlockIdBody   = BlockIdChar , { BlockIdChar } ;
+BlockIdChar   = Letter | Digit | "-" ;
+
+
+(* ----- [key:: value] — Dataview inline field ------------------- *)
+(* Dataview's syntax. Bracketed form is parsed here. Parens form
+   ((k:: v)) is intentionally NOT recognized in v1 — it is rare in
+   Kanban boards and complicates write-back. *)
+
+DataviewField = "[" , FieldKey , "::" , [ Whitespace ] , FieldValue , "]" ;
+FieldKey      = KeyChar , { KeyChar } ;
+KeyChar       = Letter | Digit | "_" | "-" | " " ;     (* no '[' ']' ':' *)
+FieldValue    = { ValueChar } ;                        (* up to the
+                                                          matching ']'
+                                                          on the same
+                                                          line *)
+ValueChar     = ? any character except ']' or newline ? ;
+
+
+(* ----- Tasks-plugin emoji set --------------------------------- *)
+(* Reference: obsidian-tasks plugin "Dates and times" page.
+   The emoji set Kanban Pro recognises is the canonical Tasks set:
+
+     📅  due           followed by   IsoDate
+     ⏳  scheduled     followed by   IsoDate
+     🛫  start         followed by   IsoDate
+     ✅  done          followed by   IsoDate
+     ❌  cancelled     followed by   IsoDate
+     🔁  recurrence    followed by   RecurrenceRule (free-form text)
+     ➕  created       followed by   IsoDate
+     🆔  taskId        followed by   IdText
+     🏁  onCompletion  followed by   OnCompletionAction
+
+   Priority emoji — these take NO argument; their *presence* is
+   the value:
+
+     🔺  priority = highest
+     ⏫  priority = high
+     🔼  priority = medium
+     🔽  priority = low
+     🔻  priority = lowest
+*)
+
+EmojiToken    = DatedEmoji  , Whitespace , IsoDate
+              | RecurEmoji  , Whitespace , RecurrenceRule
+              | IdEmoji     , Whitespace , IdText
+              | OnDoneEmoji , Whitespace , OnCompletionAction
+              | PriorityEmoji ;
+
+DatedEmoji    = "📅" | "⏳" | "🛫" | "✅" | "❌" | "➕" ;
+RecurEmoji    = "🔁" ;
+IdEmoji       = "🆔" ;
+OnDoneEmoji   = "🏁" ;
+PriorityEmoji = "🔺" | "⏫" | "🔼" | "🔽" | "🔻" ;
+
+RecurrenceRule       = { NonNewline } ;     (* parsed by rrule layer,
+                                               not by inlineMeta *)
+(* Recurrence field-name convention (consumed by src/pro/recurrence):
+     `rrule`   — canonical: an RFC 5545 RRULE string (machine-readable).
+                  Expressed in source as a Dataview field
+                  `[rrule:: FREQ=WEEKLY;BYDAY=MO]`.
+     `repeats` — natural-language alternative, parsed via chrono-node
+                  (e.g. `[repeats:: every monday at 9am]`).
+     `repeat`  — recognised by the UI badge for Tasks-plugin compat;
+                  not currently consumed by the engine (use `repeats`
+                  for natural language or `rrule` for RFC 5545).
+   Plus the 🔁 emoji form documented above. *)
+IdText               = IdChar , { IdChar } ;
+IdChar               = Letter | Digit | "-" | "_" ;
+OnCompletionAction   = "delete" | "keep" | { Letter } ;
+
+
+(* ----- Lexical primitives ------------------------------------- *)
+
+Digit         = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
+Letter        = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H"
+              | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P"
+              | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X"
+              | "Y" | "Z"
+              | "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h"
+              | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p"
+              | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x"
+              | "y" | "z" ;
+UnicodeLetter = ? any Unicode code point in category L or N (excluding
+                  ASCII digits handled separately) ? ;
+Whitespace    = " " | "\t" ;
+NonNewline    = ? any character except newline ? ;
+NonTokenChar  = ? any character that does not start an InlineToken ? ;
+
+
+(* ----- Notes on byte-identity --------------------------------- *)
+(* `inlineMeta.ts` returns both the parsed `InlineMeta` struct and
+   the *original token order* so that a card with `hash` unchanged
+   can be re-emitted verbatim from `position.start..end`. The
+   canonical writer (only invoked under `kanban-canonical: true`
+   or via the explicit "Canonicalize this board" command) emits
+   tokens in this order:
+     1. Tasks-plugin priority emoji   (🔺⏫🔼🔽🔻)
+     2. Dates in the order: 🛫 ⏳ 📅 ➕ ✅ ❌
+     3. 🔁 recurrence
+     4. 🆔 taskId   🏁 onCompletion
+     5. @{date}  @@{time}
+     6. Dataview fields, sorted by key
+     7. #tags, sorted lexicographically
+     8. ^blockid (always last; Obsidian requires it at line end)
+*)

@@ -1,0 +1,444 @@
+/* ============================================================
+   Kanban Pro — Lane
+   ============================================================
+   Lane shell, head (title + count + actions), add-card button,
+   collapsed-lane state, drop indicator.
+   ============================================================ */
+
+.kp-lane {
+  width: var(--kp-lane-width);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-2);
+  background: var(--kp-lane-bg);
+  position: relative;
+  /* C3 — Lanes are always rendered at full opacity. The rise animation
+     below is purely a Y-axis polish and is gated on
+     prefers-reduced-motion: no-preference. Previously the keyframe
+     started at opacity: 0 with `animation … both`, which left the first
+     paint of the Backlog (nth-child(1), 100ms delay) invisible — users
+     reported "the first lane header doesn't appear until I scroll".
+     Opacity now defaults to 1 so the lane is legible from the first
+     paint even if the animation never runs (Safari with reduced-motion
+     forced, screenshot tools, etc.). */
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .kp-lane {
+    animation: kp-lane-rise var(--kp-duration-rise) var(--kp-easing) both;
+  }
+
+  /* Staggered entrance — first 5 lanes; later lanes fall back to 0 delay */
+  .kp-lane:nth-child(1) { animation-delay: 100ms; }
+  .kp-lane:nth-child(2) { animation-delay: 160ms; }
+  .kp-lane:nth-child(3) { animation-delay: 220ms; }
+  .kp-lane:nth-child(4) { animation-delay: 280ms; }
+  .kp-lane:nth-child(5) { animation-delay: 340ms; }
+}
+
+@keyframes kp-lane-rise {
+  /* C3 — Animation now drives only the translate; opacity stays at 1 so
+     a delay-gap or interrupted animation can't leave the lane invisible. */
+  from { transform: translateY(12px); }
+  to   { transform: translateY(0); }
+}
+
+/* ============================================================
+   Lane head
+   ============================================================ */
+.kp-lane-head {
+  display: flex;
+  align-items: center;
+  gap: var(--kp-space-2);
+  padding: var(--kp-space-1) var(--kp-space-1) var(--kp-space-3);
+  user-select: none;
+}
+
+.kp-lane-title {
+  font-size: var(--kp-text-lg);
+  font-weight: var(--kp-weight-semi);
+  color: var(--kp-text);
+  margin: 0;
+  letter-spacing: -0.005em;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kp-lane-title[contenteditable="true"] {
+  outline: none;
+  border-radius: var(--kp-radius-sm);
+  padding: 0 var(--kp-space-1);
+  margin: 0 calc(-1 * var(--kp-space-1));
+}
+
+.kp-lane-title[contenteditable="true"]:focus-visible {
+  background: var(--kp-bg-hover);
+  box-shadow: var(--kp-focus-ring);
+}
+
+.kp-lane-count {
+  font-family: var(--kp-font-mono);
+  font-size: var(--kp-text-xs);
+  color: var(--kp-text-faint);
+  font-weight: var(--kp-weight-medium);
+  flex-shrink: 0;
+}
+
+.kp-lane-head .kp-spacer {
+  flex: 1;
+}
+
+.kp-lane-actions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity var(--kp-duration-fast) var(--kp-easing);
+}
+
+.kp-lane:hover .kp-lane-actions,
+.kp-lane:focus-within .kp-lane-actions {
+  opacity: 1;
+}
+
+.kp-lane-actions .kp-ic {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--kp-text-faint);
+  border-radius: var(--kp-radius-xs);
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.kp-lane-actions .kp-ic svg {
+  width: 12px;
+  height: 12px;
+}
+
+.kp-lane-actions .kp-ic:hover {
+  background: var(--kp-bg-hover);
+  color: var(--kp-text);
+}
+
+/* ============================================================
+   Card list (the dnd-droppable region)
+   ============================================================ */
+.kp-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-card-gap);
+  min-height: var(--kp-space-7);
+  /* QA C2 (2026-05-16 evening) — let the `<ol>` GROW vertically inside
+   * its lane article so the `pointerWithin` collision target fills the
+   * full lane body, not just the height of the cards stacked at the top.
+   *
+   * Before this rule, `.kp-cards` was content-sized: a lane with one card
+   * had an ~88px-tall droppable, a lane with zero cards an ~48px-tall
+   * one. Any drop attempt below that band (the visually empty lower half
+   * of the lane) missed every droppable and either no-op'd or — when the
+   * user's pointer happened to graze the next lane's `<ol>` at the top —
+   * resolved one lane to the right. That's the QA-observed wrong-lane
+   * defect (the cursor was over In Progress's *article* but BELOW its
+   * `<ol>`, so `pointerWithin` resolved nothing in In Progress and the
+   * drag's translated active-card rect drifted into Done's body).
+   *
+   * `flex: 1 1 auto` makes the droppable rect cover the full lane body
+   * (header sits above with its own content-height, "+ Add card" sits
+   * below with its own — `.kp-cards` claims everything in between). The
+   * lane article is `align-items: stretch` of `.kp-lanes`, so the
+   * effective droppable height grows to match the tallest lane on the
+   * board. */
+  flex: 1 1 auto;
+}
+
+/* Empty lane droppable hint.
+ *
+ * QA C2 (1.0.1) — `pointerWithin`-only collision detection (see
+ * DnDProvider.tsx) needs the empty-lane `<ol>` bounding rect to be tall
+ * enough that the cursor can reliably land inside it during a drag-to-
+ * empty-lane gesture. The pseudo-element below contributes to the rect,
+ * but we also set an explicit `min-height` on the `<ol>` itself so the
+ * drop target is guaranteed regardless of how the pseudo-element lays
+ * out under future theme overrides. With the `flex: 1` rule above the
+ * `<ol>` already fills the lane vertically; this guarantee covers the
+ * edge case where a lane is forced shorter than its content by a
+ * downstream layout (collapsed neighbour, narrow viewport). */
+.kp-cards.is-empty {
+  min-height: 120px;
+}
+
+.kp-cards.is-empty::after {
+  content: '';
+  display: block;
+  height: var(--kp-space-7);
+  border: 1px dashed transparent;
+  border-radius: var(--kp-radius);
+  transition: border-color var(--kp-duration-fast) var(--kp-easing);
+}
+
+.kp-cards.is-droppable-active::after {
+  border-color: var(--kp-accent-border);
+}
+
+/* ============================================================
+   Add card button
+   ============================================================ */
+.kp-add-card {
+  appearance: none;
+  background: transparent;
+  border: 1px dashed var(--kp-border-strong);
+  padding: var(--kp-space-2) var(--kp-space-3);
+  font-size: var(--kp-text-sm);
+  color: var(--kp-text-muted);
+  cursor: pointer;
+  border-radius: var(--kp-radius);
+  text-align: left;
+  font-family: inherit;
+  transition:
+    border-color var(--kp-duration-fast) var(--kp-easing),
+    color var(--kp-duration-fast) var(--kp-easing),
+    background var(--kp-duration-fast) var(--kp-easing);
+  width: 100%;
+}
+
+.kp-add-card:hover {
+  border-color: var(--kp-border-focus);
+  color: var(--kp-text);
+  background: var(--kp-bg-secondary);
+}
+
+.kp-add-card:focus-visible {
+  outline: none;
+  border-color: var(--kp-accent);
+  color: var(--kp-text);
+  box-shadow: var(--kp-focus-ring);
+}
+
+/* ============================================================
+   Drop indicator — single thin accent line between cards
+   ============================================================ */
+.kp-drop-indicator {
+  height: 0;
+  position: relative;
+  pointer-events: none;
+  margin: calc(-0.5 * var(--kp-card-gap)) 0;
+}
+
+.kp-drop-indicator::before {
+  content: '';
+  display: block;
+  position: absolute;
+  inset: -1px 0 -1px 0;
+  height: 2px;
+  background: var(--kp-drop-indicator);
+  border-radius: var(--kp-radius-full);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--kp-accent) 18%, transparent);
+  animation: kp-drop-pulse 1.4s var(--kp-easing) infinite;
+}
+
+@keyframes kp-drop-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.6; }
+}
+
+/* ============================================================
+   Lane state — receiving a drop (over the cards region)
+   ============================================================ */
+.kp-lane.is-drop-target {
+  background: var(--kp-accent-soft-2);
+  border-radius: var(--kp-radius-lg);
+}
+
+/* ============================================================
+   Shipped / done lane — fades cards until hover
+   ============================================================ */
+.kp-lane.is-shipped .kp-card {
+  opacity: var(--kp-lane-shipped-opacity);
+  transition:
+    opacity var(--kp-duration-base) var(--kp-easing),
+    border-color var(--kp-duration-fast) var(--kp-easing),
+    box-shadow var(--kp-duration-fast) var(--kp-easing);
+}
+
+.kp-lane.is-shipped .kp-card:hover {
+  opacity: 1;
+}
+
+/* ============================================================
+   Collapsed lane — narrow vertical chip
+   ============================================================ */
+.kp-lane.is-collapsed {
+  width: var(--kp-lane-width-collapsed);
+  background: var(--kp-lane-collapsed-bg);
+  border: 1px solid var(--kp-border);
+  border-radius: var(--kp-radius);
+  padding: var(--kp-space-2) var(--kp-space-1);
+  cursor: pointer;
+  align-self: stretch;
+}
+
+.kp-lane.is-collapsed .kp-lane-head {
+  flex-direction: column;
+  align-items: center;
+  gap: var(--kp-space-2);
+  padding: 0;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+.kp-lane.is-collapsed .kp-lane-title {
+  writing-mode: inherit;
+  letter-spacing: 0.04em;
+  font-size: var(--kp-text-md);
+}
+
+.kp-lane.is-collapsed .kp-cards,
+.kp-lane.is-collapsed .kp-add-card,
+.kp-lane.is-collapsed .kp-lane-actions {
+  display: none;
+}
+
+.kp-lane.is-collapsed:hover {
+  background: var(--kp-bg-hover);
+}
+
+/* ============================================================
+   Lane menu (M2) — "..." popover surfaced from the lane head.
+   Anchored to the header's actions group; absolutely positioned
+   below the trigger button. The popover owns its own outside-
+   click dismissal (see LaneMenu.tsx), so this stylesheet only
+   covers chrome.
+   ============================================================ */
+.kp-lane-menu__anchor {
+  position: relative;
+  display: inline-flex;
+}
+
+.kp-lane-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: var(--kp-z-popover, 1000);
+  min-width: 160px;
+  background: var(--kp-bg);
+  border: 1px solid var(--kp-border);
+  border-radius: var(--kp-radius);
+  box-shadow: var(--kp-shadow-modal);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  animation: kp-lane-menu-in var(--kp-duration-fast) var(--kp-easing) both;
+}
+
+@keyframes kp-lane-menu-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.kp-lane-menu__item {
+  appearance: none;
+  background: transparent;
+  border: none;
+  text-align: left;
+  font: inherit;
+  font-size: var(--kp-text-sm);
+  color: var(--kp-text);
+  padding: 6px var(--kp-space-2);
+  border-radius: var(--kp-radius-sm);
+  cursor: pointer;
+  display: block;
+  width: 100%;
+}
+
+.kp-lane-menu__item:hover:not(:disabled),
+.kp-lane-menu__item:focus-visible {
+  background: var(--kp-bg-hover);
+  outline: none;
+}
+
+.kp-lane-menu__item:disabled {
+  color: var(--kp-text-faint);
+  cursor: not-allowed;
+}
+
+.kp-lane-menu__item--danger {
+  color: var(--kp-red, #d23f3f);
+}
+
+.kp-lane-menu__item--danger:hover:not(:disabled),
+.kp-lane-menu__item--danger:focus-visible {
+  background: color-mix(in srgb, var(--kp-red, #d23f3f) 14%, transparent);
+  color: var(--kp-red, #d23f3f);
+}
+
+.kp-lane-menu__divider {
+  height: 1px;
+  margin: 4px 2px;
+  background: var(--kp-border);
+}
+
+/* ============================================================
+   Add-lane affordance (trailing column)
+   ============================================================ */
+.kp-add-lane {
+  width: var(--kp-lane-width);
+  flex-shrink: 0;
+  align-self: stretch;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--kp-border-strong);
+  border-radius: var(--kp-radius);
+  /* W2.3 — bump to default text colour (was --kp-text-muted) so the
+     affordance reads as an actionable control at rest, not as empty
+     chrome. The dashed border + transparent background still make it
+     visually secondary to populated lanes. */
+  color: var(--kp-text);
+  background: transparent;
+  cursor: pointer;
+  font-size: var(--kp-text-sm);
+  font-weight: 500;
+  font-family: inherit;
+  transition:
+    border-color var(--kp-duration-fast) var(--kp-easing),
+    color var(--kp-duration-fast) var(--kp-easing),
+    background var(--kp-duration-fast) var(--kp-easing);
+}
+
+.kp-add-lane:hover {
+  border-color: var(--kp-border-focus);
+  color: var(--kp-text);
+  background: var(--kp-bg-secondary);
+}
+
+.kp-add-lane__icon {
+  display: inline-block;
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1;
+  margin-right: var(--kp-space-1);
+}
+
+.kp-add-lane__label {
+  font-weight: 500;
+}
+
+.kp-add-lane:focus-visible {
+  outline: none;
+  border-color: var(--kp-accent);
+  color: var(--kp-text);
+  box-shadow: var(--kp-focus-ring);
+}

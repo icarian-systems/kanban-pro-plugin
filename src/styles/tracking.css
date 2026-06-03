@@ -1,0 +1,300 @@
+/* ============================================================
+   Kanban Pro — Time tracking
+   ============================================================
+     - .kp-tracking-chip   → inline meta-row chip on a Card
+     - .kp-tracking-panel  → slide-in drawer with history
+   ============================================================ */
+
+/* ---------- Card chip ------------------------------------------ */
+
+.kp-tracking-chip {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px var(--kp-space-2);
+  border: 1px solid var(--kp-border);
+  border-radius: var(--kp-radius-full);
+  background: var(--kp-bg);
+  color: var(--kp-text-muted);
+  font-family: inherit;
+  font-size: var(--kp-text-xs);
+  cursor: pointer;
+  transition:
+    background var(--kp-duration-fast) var(--kp-easing),
+    border-color var(--kp-duration-fast) var(--kp-easing),
+    color var(--kp-duration-fast) var(--kp-easing);
+  user-select: none;
+  position: relative;
+}
+
+.kp-tracking-chip:hover {
+  background: var(--kp-bg-hover);
+  color: var(--kp-text);
+  border-color: var(--kp-border-strong);
+}
+
+.kp-tracking-chip__icon {
+  display: inline-flex;
+  width: 12px;
+  height: 12px;
+  align-items: center;
+  justify-content: center;
+}
+
+.kp-tracking-chip__icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.kp-tracking-chip__label {
+  font-variant-numeric: tabular-nums;
+}
+
+.kp-tracking-chip.has-time {
+  color: var(--kp-text);
+}
+
+.kp-tracking-chip.is-running {
+  color: var(--kp-green);
+  background: var(--kp-green-soft);
+  border-color: var(--kp-green-border);
+}
+
+.kp-tracking-chip.is-running:hover {
+  background: var(--kp-green-soft);
+  color: var(--kp-green);
+  border-color: var(--kp-green);
+}
+
+.kp-tracking-chip__pulse {
+  position: absolute;
+  top: 50%;
+  left: 4px;
+  transform: translate(-50%, -50%);
+  width: 6px;
+  height: 6px;
+  border-radius: var(--kp-radius-full);
+  background: var(--kp-green);
+  box-shadow: 0 0 0 0 var(--kp-green);
+  animation: kp-tracking-pulse 1600ms var(--kp-easing) infinite;
+}
+
+@keyframes kp-tracking-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--kp-green-soft); }
+  50%      { box-shadow: 0 0 0 4px transparent; }
+}
+
+.kp-tracking-chip--locked {
+  color: var(--kp-text-faint);
+  background: transparent;
+  border-style: dashed;
+}
+
+.kp-tracking-chip--locked:hover {
+  color: var(--kp-accent);
+  border-color: var(--kp-accent-border);
+  background: var(--kp-accent-soft);
+}
+
+/* ---------- Panel ---------------------------------------------- */
+
+.kp-tracking-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--kp-paywall-veil);
+  z-index: var(--kp-z-modal);
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+  animation: kp-tracking-overlay-in var(--kp-duration-base) var(--kp-easing) both;
+}
+
+@keyframes kp-tracking-overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.kp-tracking-panel {
+  width: min(480px, 100%);
+  background: var(--kp-bg);
+  border-left: 1px solid var(--kp-border);
+  box-shadow: var(--kp-shadow-modal);
+  display: flex;
+  flex-direction: column;
+  animation: kp-tracking-panel-in var(--kp-duration-base) var(--kp-easing) both;
+}
+
+@keyframes kp-tracking-panel-in {
+  from { transform: translateX(16px); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+
+.kp-tracking-panel__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--kp-space-3);
+  padding: var(--kp-space-5) var(--kp-space-5) var(--kp-space-3);
+  border-bottom: 1px solid var(--kp-border);
+}
+
+.kp-tracking-panel__title {
+  margin: 0;
+  font-size: var(--kp-text-xl);
+  font-weight: var(--kp-weight-semi);
+}
+
+.kp-tracking-panel__total {
+  margin: var(--kp-space-1) 0 0;
+  font-size: var(--kp-text-sm);
+  color: var(--kp-text-muted);
+}
+
+.kp-tracking-panel__running {
+  margin-left: var(--kp-space-2);
+  color: var(--kp-green);
+  font-weight: var(--kp-weight-medium);
+}
+
+.kp-tracking-panel__close {
+  appearance: none;
+  background: transparent;
+  border: none;
+  width: 28px;
+  height: 28px;
+  font-size: 18px;
+  color: var(--kp-text-muted);
+  border-radius: var(--kp-radius-sm);
+  cursor: pointer;
+}
+
+.kp-tracking-panel__close:hover {
+  background: var(--kp-bg-hover);
+  color: var(--kp-text);
+}
+
+.kp-tracking-panel__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--kp-space-4) var(--kp-space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-4);
+}
+
+.kp-tracking-panel__actions {
+  display: flex;
+  gap: var(--kp-space-2);
+}
+
+.kp-tracking-panel__primary {
+  appearance: none;
+  padding: var(--kp-space-2) var(--kp-space-4);
+  border-radius: var(--kp-radius);
+  background: var(--kp-accent);
+  color: var(--kp-accent-fg);
+  border: 1px solid transparent;
+  font-family: inherit;
+  font-size: var(--kp-text-md);
+  font-weight: var(--kp-weight-medium);
+  cursor: pointer;
+  transition: background var(--kp-duration-fast) var(--kp-easing);
+}
+
+.kp-tracking-panel__primary:hover {
+  background: var(--kp-accent-hover);
+}
+
+.kp-tracking-panel__primary[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.kp-tracking-panel__primary--stop {
+  background: var(--kp-red);
+}
+
+.kp-tracking-panel__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kp-space-2);
+}
+
+.kp-tracking-panel__h {
+  margin: 0;
+  font-size: var(--kp-text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: var(--kp-weight-medium);
+  color: var(--kp-text-faint);
+}
+
+.kp-tracking-panel__empty {
+  margin: 0;
+  font-size: var(--kp-text-sm);
+  color: var(--kp-text-muted);
+  font-style: italic;
+}
+
+.kp-tracking-panel__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--kp-text-sm);
+}
+
+.kp-tracking-panel__table th,
+.kp-tracking-panel__table td {
+  text-align: left;
+  padding: var(--kp-space-2);
+  border-bottom: 1px solid var(--kp-border);
+}
+
+.kp-tracking-panel__table th {
+  font-size: var(--kp-text-xs);
+  color: var(--kp-text-faint);
+  font-weight: var(--kp-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.kp-tracking-panel__table td {
+  color: var(--kp-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.kp-tracking-panel__table tr.is-running td {
+  color: var(--kp-green);
+  font-weight: var(--kp-weight-medium);
+}
+
+.kp-tracking-panel__form {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--kp-space-2);
+}
+
+.kp-tracking-panel__form label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--kp-text-sm);
+  color: var(--kp-text-muted);
+}
+
+.kp-tracking-panel__form input {
+  appearance: none;
+  background: var(--kp-bg);
+  color: var(--kp-text);
+  border: 1px solid var(--kp-border);
+  border-radius: var(--kp-radius-sm);
+  padding: var(--kp-space-1) var(--kp-space-2);
+  font-family: inherit;
+  font-size: var(--kp-text-md);
+}
+
+.kp-tracking-panel__form input:focus {
+  outline: none;
+  border-color: var(--kp-accent);
+  box-shadow: var(--kp-focus-ring);
+}
