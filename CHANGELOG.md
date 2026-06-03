@@ -4,6 +4,18 @@ All notable changes to Kanban Pro are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.0.5] — 2026-06-03
+
+### Changed
+
+- **README rewritten for Obsidian users.** The README is now user-facing —
+  install-from-Obsidian steps, a getting-started walkthrough, an inline-metadata
+  syntax reference, a commands table, a settings tour, and the five
+  `docs/*.png` screenshots. All developer content (build, watch loop, test
+  table, project layout, licensing internals) moved to a new
+  [CONTRIBUTING.md](CONTRIBUTING.md). Also corrected the sandbox plugin-folder
+  path to the real id `kanban-pro-boards`.
+
 ## [1.0.4] — 2026-06-03
 
 ### Fixed (plugin-review warnings)
