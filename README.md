@@ -1,6 +1,6 @@
-# Kanban Pro
+# Kanban for Professionals
 
-Local-first Kanban / project-management boards for [Obsidian](https://obsidian.md). Kanban Pro reads and writes the same `kanban-plugin: board` on-disk markdown format used by the community [Kanban plugin](https://github.com/mgmeyers/obsidian-kanban), so existing boards work without conversion or data loss. (Kanban Pro is an independent project and is not affiliated with or endorsed by that plugin or its authors.)
+Local-first Kanban / project-management boards for [Obsidian](https://obsidian.md). Kanban for Professionals reads and writes the same `kanban-plugin: board` on-disk markdown format used by the community [Kanban plugin](https://github.com/mgmeyers/obsidian-kanban), so existing boards work without conversion or data loss. (Kanban for Professionals is an independent project and is not affiliated with or endorsed by that plugin or its authors.)
 
 - **Free**: Board / Table / List views, embeds, basic templates, validator.
 - **Pro**: Recurrence, Saved Views, time tracking, calendar export, and the dashboard.

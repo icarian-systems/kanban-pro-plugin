@@ -94,31 +94,38 @@
    Reduced motion — drop entrance animations, keep states
    ============================================================ */
 @media (prefers-reduced-motion: reduce) {
-  /* `!important` is intentional and required here. This is the standard
-     reduced-motion reset: it must override per-component animation/
-     transition declarations regardless of their selector specificity, so
-     a user who asks the OS to reduce motion is guaranteed a still UI. A
-     specificity bump can't make that guarantee against arbitrary future
-     rules — this is the one place !important is the correct tool. */
-  .kp-root *,
-  .kp-root *::before,
-  .kp-root *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-    scroll-behavior: auto !important;
+  /* Motion is neutralized by collapsing the duration *tokens* that every
+     entrance animation and transition reads — overriding values, not
+     forcing rules. We redefine the tokens on the same hosts that declare
+     them (tokens.css: `.kp-root, .kp-onboarding-modal, ...`); since these
+     are inherited custom properties, the override cascades to the whole
+     subtree and every `var(--kp-duration-*)` resolves to ~0. */
+  .kp-root,
+  .kp-onboarding-modal {
+    --kp-duration-instant: 0.001ms;
+    --kp-duration-fast: 0.001ms;
+    --kp-duration-base: 0.001ms;
+    --kp-duration-slow: 0.001ms;
+    --kp-duration-rise: 0.001ms;
   }
 
-  /* Keep the timer pulse — but slow it to a near-static blink so the
-     "active" affordance still communicates state without strobing. */
-  .kp-timer .kp-pulse {
-    animation: none;
-    opacity: 0.8;
-  }
-
-  /* The drop indicator should still be visible but stop pulsing. */
+  /* The looping affordances (spinner, skeleton shimmer, timer/tracking/drop
+     pulses) use hard-coded durations rather than the tokens above, so they
+     must be stopped explicitly. Each selector mirrors its original rule
+     exactly; a11y.css is the last sheet in the bundle, so equal specificity
+     + later source order wins on its own. */
+  .kp-spinner,
+  .kp-skeleton::after,
+  .kp-tracking-chip__pulse,
+  .kp-timer .kp-pulse,
   .kp-drop-indicator::before {
     animation: none;
+  }
+
+  /* Keep the timer's "active" affordance legible now that its pulse is
+     stilled. */
+  .kp-timer .kp-pulse {
+    opacity: 0.8;
   }
 }
 

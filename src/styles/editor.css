@@ -29,7 +29,7 @@
 
 /* Mounted CM6 — minimal overrides; let Obsidian's editor theme drive.
    The doubled `.cm-editor.cm-editor` raises specificity to win over
-   Obsidian's themed editor background without resorting to !important. */
+   Obsidian's themed editor background without forcing the override. */
 .kp-inline-editor-host .cm-editor.cm-editor {
   background: transparent;
   font-family: inherit;

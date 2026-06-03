@@ -4,6 +4,24 @@ All notable changes to Kanban Pro are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.0.4] — 2026-06-03
+
+### Fixed (plugin-review warnings)
+
+- **`!important` removed from the reduced-motion reset.** Motion is now
+  neutralized by collapsing the `--kp-duration-*` tokens inside the
+  `prefers-reduced-motion` media query (the reviewer-recommended
+  CSS-variables route), so every `var(--kp-duration-*)`-based animation and
+  transition resolves to ~0 without fighting specificity. The handful of
+  looping affordances that use hard-coded durations (spinner, skeleton
+  shimmer, timer / tracking / drop-indicator pulses) are stopped with
+  explicit `animation: none` rules whose selectors mirror the originals —
+  a11y.css loads last, so equal specificity + source order wins.
+  `styles.css` now contains zero `!important` declarations.
+  ([src/styles/a11y.css](src/styles/a11y.css))
+- **README title now matches `manifest.json`.** The H1 and opening blurb
+  read "Kanban for Professionals" to match the manifest `name`.
+
 ## [1.0.3] — 2026-06-03
 
 ### Changed
