@@ -1,176 +1,177 @@
 # Kanban for Professionals
 
-Local-first Kanban / project-management boards for [Obsidian](https://obsidian.md). Kanban for Professionals reads and writes the same `kanban-plugin: board` on-disk markdown format used by the community [Kanban plugin](https://github.com/mgmeyers/obsidian-kanban), so existing boards work without conversion or data loss. (Kanban for Professionals is an independent project and is not affiliated with or endorsed by that plugin or its authors.)
+Local-first Kanban / project-management boards for [Obsidian](https://obsidian.md). Plan work on a drag-and-drop board, then slice the same cards as a table, a list, or a dashboard — all stored as plain markdown in your vault.
 
-- **Free**: Board / Table / List views, embeds, basic templates, validator.
-- **Pro**: Recurrence, Saved Views, time tracking, calendar export, and the dashboard.
+![Kanban for Professionals — board view](docs/01-hero-board.png)
+
+> **Compatible with your existing boards.** Kanban for Professionals reads and writes the same `kanban-plugin: board` markdown format used by the community [Kanban plugin](https://github.com/mgmeyers/obsidian-kanban), so your current boards open without conversion or data loss. (This is an independent project, not affiliated with or endorsed by that plugin or its authors.)
+
+---
+
+## Features
+
+**Free**
+
+- **Board, Table, and List views** of the same cards — switch with one click, no duplication.
+- **Drag-and-drop** cards between lanes, with gesture-scoped **undo / redo**.
+- **Inline editing** on the card, plus a **detail panel** for the full card.
+- **Embed boards** inside other notes with a `kanban-plugin` code block.
+- **Inline metadata** — due dates, tags, priorities, and Dataview fields are parsed into chips ([syntax below](#working-with-cards)).
+- **Board validator** that round-trips your file and reports any byte-level diff, so you can trust the format is preserved.
+
+**Pro** — _$5.99, lifetime ([details](#pro-features--pricing))_
+
+- **Saved Views** — named, reusable filters (Due this week, Assigned to me, Overdue, Recurring, and your own).
+- **Dashboard** — overdue / due-soon counters and rollups across the board.
+- **Recurrence** — repeating cards via `[rrule:: …]`, natural-language `[repeats:: …]`, or the 🔁 emoji.
+- **Time tracking** — a per-card timer with an active-timer pill in the right rail.
+- **Calendar (.ics) export** and **GitHub Issues** sync.
+
+| Saved Views & right rail | Table view |
+|---|---|
+| ![Saved Views](docs/02-saved-views.png) | ![Table view](docs/03-table-view.png) |
+
+---
+
+## Installation
+
+### From Obsidian (recommended)
+
+1. Open **Settings → Community plugins** and make sure *Restricted mode* is **off**.
+2. Click **Browse**, search for **Kanban for Professionals**.
+3. Click **Install**, then **Enable**.
+
+### Manual install
+
+1. Download `manifest.json`, `main.js`, and `styles.css` from the [latest release](https://github.com/icarian-systems/kanban-pro-plugin/releases/latest).
+2. Copy them into `<your-vault>/.obsidian/plugins/kanban-pro-boards/`.
+3. Reload Obsidian, then enable the plugin under **Settings → Community plugins**.
+
+> Want pre-release builds? Install via [BRAT](https://github.com/TfTHacker/obsidian42-brat) and point it at `icarian-systems/kanban-pro-plugin`.
+
+---
+
+## Getting started
+
+1. **Create a board.** Click the Kanban ribbon icon in the left sidebar, or run **Kanban for Professionals: Create new board** from the command palette (`Cmd/Ctrl+P`). Obsidian opens a new note with three empty lanes.
+2. **Add cards.** Click **+ Add card** at the bottom of a lane and start typing. Press `Enter` to save.
+3. **Move cards.** Drag a card between lanes. Changes write straight back to the markdown file.
+4. **Edit a card.** Click the card title to edit in place, or open the **detail panel** for description, subtasks, due date, and tags.
+5. **Switch views.** Use the **Board / Table / List / Dashboard** tabs at the top to see the same cards a different way.
+
+A guided walkthrough is always available via **Kanban for Professionals: Show getting started**.
+
+### Opening an existing board
+
+Any note whose frontmatter contains `kanban-plugin: board` opens as a board automatically — including boards made with the original Kanban plugin. Nothing to convert.
+
+### On mobile
+
+The board works on Obsidian for iOS and Android:
+
+- **Press and hold** a card briefly to pick it up and drag it.
+- **Long-press** a card to open its detail panel.
+
+---
+
+## Working with cards
+
+Type these tokens directly into a card's text and Kanban for Professionals renders them as chips. The raw tokens stay in your markdown, so other plugins (Dataview, Tasks) keep working too.
+
+| You want… | Type this | Example |
+|---|---|---|
+| A due date (Kanban native) | `@{YYYY-MM-DD}` | `@{2026-06-21}` |
+| A time of day | `@@{HH:mm}` | `@@{09:30}` |
+| A due date (Tasks emoji) | `📅 YYYY-MM-DD` | `📅 2026-06-21` |
+| A due date (Dataview) | `[due:: YYYY-MM-DD]` | `[due:: 2026-06-21]` |
+| A tag | `#tag` | `#backend` `#client/acme` |
+| An assignee / any field | `[key:: value]` | `[assignee:: rosa]` |
+| A priority | `🔺 ⏫ 🔼 🔽 🔻` | `Ship release ⏫` |
+| A repeating card (RFC 5545) | `[rrule:: …]` | `[rrule:: FREQ=WEEKLY;BYDAY=MO]` |
+| A repeating card (plain English) | `[repeats:: …]` | `[repeats:: every monday at 9am]` |
+| A block reference | `^id` (line end) | `^card-42` |
+
+Kanban for Professionals also recognizes the broader [Tasks plugin](https://publish.obsidian.md/tasks/) emoji set (⏳ scheduled, 🛫 start, ✅ done, ❌ cancelled, ➕ created, 🆔 id, 🏁 on-completion). The full grammar lives in [`docs/inline-meta.ebnf`](docs/inline-meta.ebnf).
+
+---
+
+## Views
+
+- **Board** — the classic Kanban columns; drag cards between lanes.
+- **Table** — a sortable grid (title, lane, due, tags, assignee, status). Good for scanning a lot of cards at once.
+- **List** — a compact, linear read of every card.
+- **Dashboard** _(Pro)_ — overdue / due-soon counters and cross-lane rollups.
+
+The **right rail** holds Saved Views, the active timer, linked notes, and integrations. Use the **Filter** and **Search** controls in the toolbar to narrow any view.
+
+---
+
+## Commands
+
+Open the command palette with `Cmd/Ctrl+P`; every entry is prefixed **Kanban for Professionals:**. None ship with a default hotkey — assign your own under **Settings → Hotkeys**.
+
+| Command | What it does |
+|---|---|
+| **Create new board** | Create a new board, or open an existing one. |
+| **Cycle view mode (Board / Table / List)** | Rotate the active board through the three views. |
+| **Open Dashboard** _(Pro)_ | Open the dashboard for the active board. |
+| **Insert from template** | Insert cards from a saved template into the active board. |
+| **Undo last drag** / **Redo** | Step through the board's gesture-scoped history. |
+| **Validate board** | Round-trip the active file through the parser and report any byte diff. |
+| **Canonicalize this board** | Rewrite inline tokens into the canonical order (opt-in). |
+| **Export board to calendar (.ics)** _(Pro)_ | Write an `.ics` of every dated card next to the board file. |
+| **Activate Pro license** | Open the Pro pane (or activate a stored key). |
+| **Show getting started** | Reopen the onboarding walkthrough. |
+| **Rebuild vault index** | Rebuild the cross-board index used by Saved Views and the dashboard. |
+
+---
+
+## Settings
+
+Open **Settings → Community plugins → Kanban for Professionals** (or the gear on the plugin). The settings are grouped into tabs:
+
+- **General** — board defaults and behavior.
+- **Appearance** — view and styling options.
+- **Pro** — license status, activation, revalidation, and deactivation.
+- **Integrations** — GitHub Issues sync and Calendar (.ics) export _(both Pro)_.
+
+| Pro / license | Integrations |
+|---|---|
+| ![Pro license settings](docs/04-pro-license.png) | ![Integrations settings](docs/05-integrations.png) |
+
+---
+
+## Pro features & pricing
+
+Kanban for Professionals is **free to install and use** for all free-tier features. Pro unlocks Saved Views, the Dashboard, recurrence, time tracking, and the GitHub / calendar integrations.
+
+**Limited time: $5.99 for lifetime access.** Buy a license from the [Kanban for Professionals checkout](https://icarian-systems.lemonsqueezy.com/checkout/buy/d404fb1f-3961-4a3a-9715-8eb4d784fa5e), then paste your email + key under **Settings → Pro → Activate**.
+
+License verification runs **entirely offline** against bundled public keys; Pro automatically revalidates about once a week. Your boards and data are never gated — deactivating a license preserves everything.
 
 By [Icarian Systems](https://icariansystems.com).
 
 ---
 
-## Pricing and network use (disclosure)
+## Privacy & network use
 
-Kanban Pro is **free to install and use** for all free-tier features. Boards are stored entirely as local markdown in your vault — nothing is uploaded or required to use the plugin offline.
+Your boards are stored entirely as **local markdown** in your vault. Nothing is uploaded, and the plugin works fully offline. It makes network requests **only** in these cases:
 
-Some features are **paid (Pro)** and unlocked with a license purchased from the [Kanban Pro checkout](https://icarian-systems.lemonsqueezy.com/checkout/buy/d404fb1f-3961-4a3a-9715-8eb4d784fa5e). **Limited time: $5.99 for lifetime access.** The plugin makes network requests **only** in these cases:
-
-- **Purchasing / activating a license** — exchanging a purchased key for a signed token, and periodic re-validation and revocation checks against the Icarian Systems licensing service. License verification itself runs offline against bundled public keys; the network is only used to obtain and refresh the token.
-- **Optional integrations you explicitly enable** — e.g. calendar export and (planned) GitHub sync. These are off by default and only contact a service when you turn them on and authenticate.
+- **Activating / revalidating a license** — exchanging a purchased key for a signed token and periodic revalidation / revocation checks. (Verification itself is offline; the network is only used to obtain and refresh the token.)
+- **Optional integrations you turn on** — GitHub Issues sync and calendar export. These are **off by default** and only contact a service after you enable and authenticate them.
 
 No analytics or telemetry are collected. All HTTP goes through Obsidian's `requestUrl` (CORS-safe, mobile-compatible).
 
 ---
 
-## Build and test inside Obsidian
+## Support & feedback
 
-These steps put the plugin into a real Obsidian vault so you can use it as you'd use any community plugin — but rebuild it from source as you change the code.
+Found a bug or have a request? Open an issue at [icarian-systems/kanban-pro-plugin](https://github.com/icarian-systems/kanban-pro-plugin/issues).
 
-### Prerequisites
+## Contributing
 
-- **Node 18+** (the build target is ES2020).
-- **Obsidian 1.6+** desktop. (Mobile testing works too, instructions further down.)
-- A vault you don't mind using as a sandbox. **Do not use your real vault** until you've smoke-tested at least one board.
-
-### 1. Clone and install
-
-```bash
-git clone <this-repo> kanban-pro
-cd kanban-pro
-npm install
-```
-
-### 2. Wire the plugin folder into a vault
-
-Obsidian discovers plugins via `<vault>/.obsidian/plugins/<plugin-id>/`. Create that folder and link in the three required files:
-
-```bash
-# pick a vault — create a fresh one in Obsidian first if you don't have a sandbox
-VAULT=~/Documents/ObsidianSandbox
-PLUGIN_DIR="$VAULT/.obsidian/plugins/kanban-pro"
-
-mkdir -p "$PLUGIN_DIR"
-
-# Symlink the live build outputs into the vault so esbuild --watch updates
-# the running plugin without an extra copy step.
-ln -sf "$PWD/manifest.json" "$PLUGIN_DIR/manifest.json"
-ln -sf "$PWD/styles.css"    "$PLUGIN_DIR/styles.css"
-ln -sf "$PWD/main.js"       "$PLUGIN_DIR/main.js"   # will exist after the first build
-```
-
-> If you can't use symlinks (e.g. iCloud-backed vaults sometimes refuse), `cp` the three files instead. You'll need to re-copy after each rebuild.
-
-### 3. First build
-
-```bash
-npm run build       # full production build — emits main.js
-```
-
-### 4. Dev loop with watch
-
-```bash
-npm run dev         # esbuild watch mode — rebuilds main.js on every save
-```
-
-Leave this running. Each rebuild emits a fresh `main.js`. You still have to **reload the plugin in Obsidian** for the change to take effect:
-
-- Open Obsidian → **Settings → Community plugins**.
-- Find **Kanban Pro** and toggle it off, then back on. (Or use the *Hot reload* community plugin to skip the toggle — Obsidian's plugin sandbox doesn't auto-restart on file change.)
-- Open the developer console with `Cmd/Ctrl+Shift+I` to see logs prefixed `[Kanban Pro]`.
-
-### 5. Make your first board
-
-Enable the plugin in Obsidian's settings if it isn't already. Then:
-
-1. Click the **Kanban Pro** ribbon icon, *or* run **Kanban: Create new board** from the command palette.
-2. Obsidian opens a file with `kanban-plugin: board` frontmatter and three empty lanes.
-3. Try the flows — drag, inline edit, long-press for the detail panel, switch between Board / Table / List, etc.
-
-### 6. Open an existing kanban-format board
-
-Any `.md` file whose frontmatter contains `kanban-plugin: board` is routed into `KanbanView`. To smoke-test the migration path:
-
-- Copy a board from an existing `obsidian-kanban` install into the sandbox vault.
-- Open it. You should see a board, *not* the raw markdown.
-- Make one small change (move a card). Save. Re-open the file as text (right-click → *Open in default app*) and confirm the on-disk format is preserved byte-for-byte on every card you didn't touch.
-
-The **Kanban: Validate board** command runs the same parser as the standalone validator (`scripts/validate.mjs`) against the current file and reports any round-trip byte-diff.
-
-### 7. Mobile
-
-```bash
-npm run build
-```
-
-Copy the three files (`manifest.json`, `main.js`, `styles.css`) into your Obsidian Sync'd vault's `.obsidian/plugins/kanban-pro/`. Open Obsidian on iOS / Android and enable the plugin from Settings. (Mobile doesn't honour symlinks — you have to copy.)
-
-Mobile-specific things to look for:
-
-- A card press-and-hold for 200ms initiates a drag (`TouchSensor`).
-- 350ms long-press opens the `DetailPanel` instead.
-- `body.is-mobile` activates `src/styles/mobile.css` overrides.
-
----
-
-## Test commands
-
-| Command | What it runs |
-|---|---|
-| `npm test` | All vitest suites once. |
-| `npm run test:watch` | Vitest in watch mode. |
-| `npm run test:parser:property` | The fast-check round-trip property test on the parser. CI gate. |
-| `npm run test:edit-loss` | The edit-loss state-machine fuzzer (10,000 generated traces). |
-| `npm run test:lifecycle` | Lifecycle leak checks against the obsidian mock. |
-| `npm run test:license` | Ed25519 verify + FSM race tests. |
-| `npm run typecheck` | `tsc -noEmit` over `src/`. |
-| `npm run bench` | Perf benchmark vs `scripts/bench-budgets.json`. |
-| `node scripts/bundleSize.mjs` | Gzip `main.js` and fail if over the bundle-size budget. |
-| `node scripts/validate.mjs <board.md>` | Standalone parser validator — used by the **Kanban: Validate board** command. |
-
----
-
-## Pro features and licensing
-
-Pro features are gated at runtime through `useProGate()`. Free-tier users see a paywall card in place of a Pro feature; Pro is unlocked by an Ed25519-signed license token verified entirely offline against the public keys in `src/pro/license/keys.ts`.
-
-The token-issuing license service is a separate, self-hosted backend and is **not** part of this repository. The plugin ships only the client side: signature verification (`src/pro/license/verify.ts`), the activation/revalidation state machine (`src/pro/license/state.ts`), and the thin HTTP client (`src/pro/license/remote.ts`). Everything works offline; the network is only touched to exchange a purchased key for a signed token, to re-validate periodically, and to pick up revocations.
-
----
-
-## Project layout
-
-```
-src/
-  main.ts                      plugin entry
-  view/                        TextFileView, EmbedProcessor, read-only banner
-  ui/                          BoardRoot, Column, Card, DnDProvider, DetailPanel, …
-  core/
-    model.ts                   shared types (Board / Lane / Card / FileTrivia …)
-    store.ts                   per-leaf Zustand factory, immer producers, gesture API
-    saveQueue.ts               debounce + coalesce + never-silence
-    undo.ts                    gesture-scoped undo
-    parser/                    remark + sentinels + settings block, source-position
-  pro/
-    license/                   Ed25519 verify + remote client + FSM with idle-boundary
-    recurrence/                rrule + chrono-node
-    savedViews/                JSON-backed named filters
-    tracking/                  time tracking
-    integrations/              github (stub), calendar (.ics export)
-  settings/
-  shared/
-  styles/                      tokens.css + per-feature CSS
-docs/
-  inline-meta.ebnf             EBNF for the inline-meta vocabulary
-scripts/
-  validate.mjs                 parser round-trip validator
-  bench.mjs                    perf harness
-  bundleSize.mjs               bundle-size CI gate
-  checkProductionKeys.mjs      release gate: no placeholder license keys
-.github/workflows/ci.yml       typecheck / lint / test / build / bundle gate
-```
-
----
+Building from source, the dev watch loop, the test suite, and the project layout are documented in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-MIT. See `LICENSE`.
+MIT. See [`LICENSE`](LICENSE).
