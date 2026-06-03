@@ -4,6 +4,18 @@ All notable changes to Kanban Pro are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.0.2] — 2026-06-03
+
+### Changed
+
+- **Plugin `id` renamed to `kanban-pro-boards`.** The previous `kanban-pro`
+  id was already claimed in Obsidian's submission registry, blocking the
+  community-plugin listing. The cache path now derives from
+  `configDir` + `manifest.id` at runtime
+  ([src/core/vaultIndex/index.ts](src/core/vaultIndex/index.ts)) so the
+  on-disk index always follows the real install folder.
+- **Display name** updated to "Kanban Pro, for the professional".
+
 ## [1.0.1] — 2026-05-18
 
 ### Fixed
