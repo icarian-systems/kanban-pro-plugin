@@ -3,7 +3,13 @@ import process from 'process';
 import { readFile, writeFile } from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import builtins from 'builtin-modules';
+import { builtinModules } from 'node:module';
+
+// Node's own list of built-in module names — replaces the third-party
+// `builtin-modules` package (flagged by Obsidian's plugin review for using
+// a module that has a native equivalent). We also emit the `node:`-prefixed
+// aliases so esbuild externalizes e.g. both `path` and `node:path`.
+const builtins = [...builtinModules, ...builtinModules.map((m) => `node:${m}`)];
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 

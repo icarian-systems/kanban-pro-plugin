@@ -94,6 +94,12 @@
    Reduced motion — drop entrance animations, keep states
    ============================================================ */
 @media (prefers-reduced-motion: reduce) {
+  /* `!important` is intentional and required here. This is the standard
+     reduced-motion reset: it must override per-component animation/
+     transition declarations regardless of their selector specificity, so
+     a user who asks the OS to reduce motion is guaranteed a still UI. A
+     specificity bump can't make that guarantee against arbitrary future
+     rules — this is the one place !important is the correct tool. */
   .kp-root *,
   .kp-root *::before,
   .kp-root *::after {

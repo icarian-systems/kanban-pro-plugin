@@ -317,13 +317,13 @@
   overflow-y: auto;
   background: var(--kp-bg);
   /* W2.4 — keep the horizontal scrollbar visible so users discover lanes
-     that are out-of-viewport on a 4+-lane board. `scrollbar-gutter:
-     stable` reserves space so the scrollbar doesn't pop in/out as lanes
-     are added/removed; `scrollbar-color` makes it visible against the
-     board background on themes where the system default is invisibly
-     faint. */
+     that are out-of-viewport on a 4+-lane board. `scrollbar-gutter: stable`
+     reserves space so the scrollbar doesn't pop in/out as lanes are
+     added/removed. Visibility/tint is handled by the `::-webkit-scrollbar`
+     rules below — Obsidian runs on Chromium, which fully supports them, so
+     we don't need the standard CSS scrollbar styling property (only
+     partially supported on Obsidian 1.5.8) to do the same job. */
   scrollbar-gutter: stable;
-  scrollbar-color: var(--kp-border-strong) transparent;
 }
 
 .kp-board-scroll::-webkit-scrollbar {

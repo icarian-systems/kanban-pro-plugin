@@ -108,7 +108,6 @@
 .kp-table tbody tr.is-done .kp-table-cell-title {
   color: var(--kp-text-muted);
   text-decoration: line-through;
-  text-decoration-color: var(--kp-border-strong);
 }
 
 .kp-table-cell-title {
@@ -263,7 +262,6 @@
 .kp-list-row.is-done .kp-list-row-title {
   color: var(--kp-text-muted);
   text-decoration: line-through;
-  text-decoration-color: var(--kp-border-strong);
 }
 
 .kp-list-row-meta {

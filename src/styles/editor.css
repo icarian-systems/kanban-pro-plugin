@@ -27,9 +27,11 @@
   border-radius: var(--kp-radius-sm);
 }
 
-/* Mounted CM6 — minimal overrides; let Obsidian's editor theme drive */
-.kp-inline-editor-host .cm-editor {
-  background: transparent !important;
+/* Mounted CM6 — minimal overrides; let Obsidian's editor theme drive.
+   The doubled `.cm-editor.cm-editor` raises specificity to win over
+   Obsidian's themed editor background without resorting to !important. */
+.kp-inline-editor-host .cm-editor.cm-editor {
+  background: transparent;
   font-family: inherit;
 }
 
@@ -43,8 +45,8 @@
   line-height: 1.45;
 }
 
-.kp-inline-editor-host .cm-content {
-  padding: 0 !important;
+.kp-inline-editor-host .cm-content.cm-content {
+  padding: 0;
   caret-color: var(--kp-accent);
 }
 
@@ -232,8 +234,8 @@
   box-shadow: var(--kp-focus-ring);
 }
 
-.kp-detail-editor-host .cm-editor {
-  background: transparent !important;
+.kp-detail-editor-host .cm-editor.cm-editor {
+  background: transparent;
 }
 
 .kp-detail-editor-host .cm-scroller {
@@ -242,9 +244,9 @@
   line-height: 1.55;
 }
 
-.kp-detail-editor-host .cm-content {
+.kp-detail-editor-host .cm-content.cm-content {
   caret-color: var(--kp-accent);
-  padding: 0 !important;
+  padding: 0;
 }
 
 /* Footer with primary actions */

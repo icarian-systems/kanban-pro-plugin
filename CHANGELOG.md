@@ -4,6 +4,37 @@ All notable changes to Kanban Pro are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.0.3] — 2026-06-03
+
+### Changed
+
+- **Display name finalized to "Kanban for Professionals."** The Obsidian
+  directory rejected the previous name (`Kanban Pro for the professional`)
+  and the automated review flagged a repo/release manifest mismatch. The
+  manifest `name`, the repository root, and the release-asset `manifest.json`
+  now all agree on a single, directory-compliant name. The plugin `id`
+  stays `kanban-pro-boards` (unchanged).
+
+### Fixed (plugin-review warnings)
+
+- **`builtin-modules` dependency removed.** The esbuild config now derives
+  the Node built-in externals list from the native `node:module`
+  `builtinModules` export (plus `node:`-prefixed aliases), dropping the
+  third-party package the review flagged. ([esbuild.config.mjs](esbuild.config.mjs))
+- **CSS — partially-supported features removed.** Dropped the standard
+  `scrollbar-color` (the existing `::-webkit-scrollbar` rules already
+  style the scrollbar on Obsidian's Chromium), the `ui-monospace` literal
+  in the rail count chip (now resolves through `--kp-font-mono`), and the
+  `text-decoration-color` / `text-decoration-thickness` longhands across
+  card, table, list, and paywall styles (base `underline` / `line-through`
+  retained).
+- **CSS — `!important` removed from editor overrides.** The inline editor
+  and detail-panel CM6 background/padding overrides now win through a
+  specificity bump (`.cm-editor.cm-editor`) instead of `!important`. The
+  reduced-motion reset in `a11y.css` deliberately keeps `!important` — it
+  is the correct, required tool for an accessibility override that must
+  beat arbitrary per-component animations.
+
 ## [1.0.2] — 2026-06-03
 
 ### Changed
@@ -14,7 +45,7 @@ adheres to [Semantic Versioning](https://semver.org/).
   `configDir` + `manifest.id` at runtime
   ([src/core/vaultIndex/index.ts](src/core/vaultIndex/index.ts)) so the
   on-disk index always follows the real install folder.
-- **Display name** updated to "Kanban Pro, for the professional".
+- **Display name** updated (superseded by 1.0.3 — see above).
 
 ## [1.0.1] — 2026-05-18
 

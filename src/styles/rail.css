@@ -94,7 +94,7 @@
    to the right edge by the flex layout above. Re-tinted to the accent
    when the row is active for visual consistency with the icon. */
 .kp-saved-view__count {
-  font-family: var(--kp-font-mono, ui-monospace, 'JetBrains Mono', SFMono-Regular, monospace);
+  font-family: var(--kp-font-mono);
   font-size: 10.5px;
   color: var(--kp-text-faint);
   flex-shrink: 0;

@@ -624,13 +624,13 @@ body.theme-dark .markdown-rendered .kp-embed {
   overflow-y: auto;
   background: var(--kp-bg);
   /* W2.4 — keep the horizontal scrollbar visible so users discover lanes
-     that are out-of-viewport on a 4+-lane board. `scrollbar-gutter:
-     stable` reserves space so the scrollbar doesn't pop in/out as lanes
-     are added/removed; `scrollbar-color` makes it visible against the
-     board background on themes where the system default is invisibly
-     faint. */
+     that are out-of-viewport on a 4+-lane board. `scrollbar-gutter: stable`
+     reserves space so the scrollbar doesn't pop in/out as lanes are
+     added/removed. Visibility/tint is handled by the `::-webkit-scrollbar`
+     rules below — Obsidian runs on Chromium, which fully supports them, so
+     we don't need the standard CSS scrollbar styling property (only
+     partially supported on Obsidian 1.5.8) to do the same job. */
   scrollbar-gutter: stable;
-  scrollbar-color: var(--kp-border-strong) transparent;
 }
 
 .kp-board-scroll::-webkit-scrollbar {
@@ -1687,7 +1687,6 @@ body.theme-dark .markdown-rendered .kp-embed {
 .kp-card-title a {
   color: inherit;
   text-decoration: underline;
-  text-decoration-color: var(--kp-border-strong);
 }
 
 .kp-card-body {
@@ -1706,8 +1705,6 @@ body.theme-dark .markdown-rendered .kp-embed {
 .kp-card.is-done .kp-card-title {
   color: var(--kp-text-muted);
   text-decoration: line-through;
-  text-decoration-color: var(--kp-border-strong);
-  text-decoration-thickness: 1px;
 }
 
 .kp-card.is-done .kp-card-body {
@@ -2060,7 +2057,6 @@ body.theme-dark .markdown-rendered .kp-embed {
 .kp-subtask.is-done > span {
   color: var(--kp-text-faint);
   text-decoration: line-through;
-  text-decoration-color: var(--kp-border-strong);
 }
 
 /* ============================================================
@@ -2220,7 +2216,7 @@ body.theme-dark .markdown-rendered .kp-embed {
    to the right edge by the flex layout above. Re-tinted to the accent
    when the row is active for visual consistency with the icon. */
 .kp-saved-view__count {
-  font-family: var(--kp-font-mono, ui-monospace, 'JetBrains Mono', SFMono-Regular, monospace);
+  font-family: var(--kp-font-mono);
   font-size: 10.5px;
   color: var(--kp-text-faint);
   flex-shrink: 0;
@@ -2416,9 +2412,11 @@ body.theme-dark .markdown-rendered .kp-embed {
   border-radius: var(--kp-radius-sm);
 }
 
-/* Mounted CM6 — minimal overrides; let Obsidian's editor theme drive */
-.kp-inline-editor-host .cm-editor {
-  background: transparent !important;
+/* Mounted CM6 — minimal overrides; let Obsidian's editor theme drive.
+   The doubled `.cm-editor.cm-editor` raises specificity to win over
+   Obsidian's themed editor background without resorting to !important. */
+.kp-inline-editor-host .cm-editor.cm-editor {
+  background: transparent;
   font-family: inherit;
 }
 
@@ -2432,8 +2430,8 @@ body.theme-dark .markdown-rendered .kp-embed {
   line-height: 1.45;
 }
 
-.kp-inline-editor-host .cm-content {
-  padding: 0 !important;
+.kp-inline-editor-host .cm-content.cm-content {
+  padding: 0;
   caret-color: var(--kp-accent);
 }
 
@@ -2621,8 +2619,8 @@ body.theme-dark .markdown-rendered .kp-embed {
   box-shadow: var(--kp-focus-ring);
 }
 
-.kp-detail-editor-host .cm-editor {
-  background: transparent !important;
+.kp-detail-editor-host .cm-editor.cm-editor {
+  background: transparent;
 }
 
 .kp-detail-editor-host .cm-scroller {
@@ -2631,9 +2629,9 @@ body.theme-dark .markdown-rendered .kp-embed {
   line-height: 1.55;
 }
 
-.kp-detail-editor-host .cm-content {
+.kp-detail-editor-host .cm-content.cm-content {
   caret-color: var(--kp-accent);
-  padding: 0 !important;
+  padding: 0;
 }
 
 /* Footer with primary actions */
@@ -2894,7 +2892,6 @@ body.theme-dark .markdown-rendered .kp-embed {
 .kp-table tbody tr.is-done .kp-table-cell-title {
   color: var(--kp-text-muted);
   text-decoration: line-through;
-  text-decoration-color: var(--kp-border-strong);
 }
 
 .kp-table-cell-title {
@@ -3049,7 +3046,6 @@ body.theme-dark .markdown-rendered .kp-embed {
 .kp-list-row.is-done .kp-list-row-title {
   color: var(--kp-text-muted);
   text-decoration: line-through;
-  text-decoration-color: var(--kp-border-strong);
 }
 
 .kp-list-row-meta {
@@ -3345,7 +3341,6 @@ body.theme-dark .markdown-rendered .kp-embed {
 .kp-paywall-link:hover {
   background: var(--kp-accent-soft);
   text-decoration: underline;
-  text-decoration-thickness: 1px;
   text-underline-offset: 2px;
 }
 
@@ -5726,6 +5721,12 @@ body.is-mobile .kp-rail {
    Reduced motion — drop entrance animations, keep states
    ============================================================ */
 @media (prefers-reduced-motion: reduce) {
+  /* `!important` is intentional and required here. This is the standard
+     reduced-motion reset: it must override per-component animation/
+     transition declarations regardless of their selector specificity, so
+     a user who asks the OS to reduce motion is guaranteed a still UI. A
+     specificity bump can't make that guarantee against arbitrary future
+     rules — this is the one place !important is the correct tool. */
   .kp-root *,
   .kp-root *::before,
   .kp-root *::after {

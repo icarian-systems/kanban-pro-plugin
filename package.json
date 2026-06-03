@@ -1,6 +1,6 @@
 {
   "name": "kanban-pro",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Local-first Kanban / PM boards for Obsidian",
   "main": "main.js",
   "scripts": {
@@ -60,7 +60,6 @@
     "@types/react-dom": "^18.3.0",
     "@typescript-eslint/eslint-plugin": "^8.6.0",
     "@typescript-eslint/parser": "^8.6.0",
-    "builtin-modules": "^4.0.0",
     "esbuild": "^0.24.0",
     "eslint": "^9.10.0",
     "fast-check": "^3.22.0",
