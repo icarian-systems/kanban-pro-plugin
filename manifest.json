@@ -1,6 +1,6 @@
 {
   "id": "kanban-pro-boards",
-  "name": "Kanban Pro, for the professional",
+  "name": "Kanban Pro for the professional",
   "version": "1.0.2",
   "minAppVersion": "1.6.0",
   "description": "Local-first Kanban / project boards. Reads and writes the same on-disk board format used by the community Kanban plugin. Includes optional paid Pro features.",
