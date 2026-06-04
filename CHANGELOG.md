@@ -4,6 +4,30 @@ All notable changes to Kanban Pro are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.0.9] — 2026-06-03
+
+Completes the "+ Add card" fix. 1.0.8 made the new card render; this release
+stops it from disappearing a moment later.
+
+### Fixed
+
+- **A newly added card no longer vanishes ~600ms after it appears.** An empty
+  placeholder card serializes to nothing, so it does not survive a
+  serialize→parse round-trip. When the debounced save flushed, Obsidian
+  re-fired `setViewData` with the plugin's own bytes; the self-write branch
+  ran `applyDiskSnapshot` → `parseBoard` (zero cards) → `setBoard`, deleting
+  the just-created card out from under the user's open inline editor. The
+  self-write branch now treats a byte-identical echo as a no-op (mirroring the
+  `onVaultModify` path) and leaves the in-memory board — including the
+  transient placeholder — untouched. Combined with the 1.0.8 visibility fix,
+  "+ Add card" now reliably opens an editable card that stays put.
+
+### Internal
+
+- Removed a dangling `react-hooks/exhaustive-deps` eslint-disable directive in
+  `Card.tsx` that referenced an unregistered rule and was failing `npm run
+  lint` (and therefore CI) since 1.0.7.
+
 ## [1.0.8] — 2026-06-03
 
 Follow-up patch to the 1.0.6/1.0.7 "+ Add card" fixes. The earlier patches

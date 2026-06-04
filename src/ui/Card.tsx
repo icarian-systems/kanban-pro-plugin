@@ -339,8 +339,10 @@ export const Card: React.FC<CardProps> = ({
       setEditing(true);
       onAutoFocusTaken?.(cardId);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // mount-only; autoFocusOnMount is intentionally not a dep
+    // Mount-only: `autoFocusOnMount` is a creation-time signal, intentionally
+    // not a dependency (no react-hooks/exhaustive-deps plugin is configured,
+    // so a disable directive here would reference an unknown rule and error).
+  }, []);
 
   const onClick = React.useCallback(
     (e: React.MouseEvent) => {

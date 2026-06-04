@@ -230,9 +230,30 @@ export class KanbanView extends TextFileView {
     const foreign = this.session.selfWrite.isForeign(data, mtime);
 
     if (!foreign) {
-      // Our own write — apply to keep the model in sync with disk. The
-      // FIFO already recorded this write at flush time; no further book-
-      // keeping needed.
+      // Our own write echoing back through the host. The in-memory board is
+      // already the source of truth for these exact bytes — we serialized
+      // them from it moments ago in the save flush. Re-parsing our own
+      // serialization and calling setBoard() is not just needless churn: it
+      // silently drops transient in-memory-only state. A freshly-created
+      // empty placeholder card (from "+ Add card") serializes to nothing, so
+      // the reparse yields a board WITHOUT it and setBoard() deletes it out
+      // from under the user's open inline editor — the card appears, then
+      // vanishes ~600ms later when the debounced save round-trips. (This is
+      // exactly what `onVaultModify`'s own self-write branch already avoids:
+      // it records the echo and returns without reparsing.)
+      //
+      // So when our in-memory serialization matches the written bytes, treat
+      // this as a no-op echo and leave the store untouched (preserving the
+      // live placeholder + focus). Only fall back to a full resync if they
+      // somehow diverged (defensive — shouldn't happen for a clean echo).
+      try {
+        if (serializeBoard(this.session.store.getState().board) === data) {
+          this.session.selfWrite.recordSelfWrite(data, mtime);
+          return;
+        }
+      } catch {
+        // Serializer threw — fall through and resync from disk defensively.
+      }
       this.applyDiskSnapshot(data);
       return;
     }
