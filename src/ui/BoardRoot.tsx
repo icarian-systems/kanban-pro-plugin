@@ -95,6 +95,8 @@ import { SavedViewsProvider } from '@/ui/SavedViewsContext';
 import { SavedViewsPicker } from '@/ui/SavedViewsPicker';
 import { DEFAULT_SAVED_VIEW_DEFS, resolveDefaultSavedViewFilter } from '@/ui/savedViewsDefaults';
 import { useProGate } from '@/pro/license/state';
+import { KANBAN_PRO_PLUGIN_ID } from '@/shared/pluginMeta';
+import { TrackingPanel } from '@/ui/TrackingPanel';
 
 export interface BoardRootProps {
   store: BoardStore;
@@ -215,17 +217,28 @@ function basenameFromPath(sourcePath?: string): string {
  * Class names follow the established naming convention so the stylesheet
  * (styles.css) applies cleanly.
  */
-const Masthead: React.FC<{ store: BoardStore; sourcePath?: string }> = ({
+const Masthead: React.FC<{
+  store: BoardStore;
+  sourcePath?: string;
+  /** When a filter is active, show the matching-card count instead of the total. */
+  filterActive?: boolean;
+  visibleCardCount?: number;
+}> = ({
   store,
   sourcePath,
+  filterActive,
+  visibleCardCount,
 }) => {
   const title = useBoardTitle(store);
   const cardCount = useBoardCardCount(store);
   const laneCount = useBoardLaneCount(store);
   const editedAt = useBoardEditedAt(store);
+  // When filtering, the headline count reflects what's visible (e.g.
+  // "2 of 15") so it doesn't contradict the narrowed board (#6).
+  const shownCardCount = filterActive ? (visibleCardCount ?? cardCount) : cardCount;
   // `1 card · 1 lane` (singular/plural + middle-dot separator), no
   // concatenation against the previous span.
-  const cardLabel = cardCount === 1 ? 'card' : 'cards';
+  const cardLabel = shownCardCount === 1 ? 'card' : 'cards';
   const laneLabel = laneCount === 1 ? 'lane' : 'lanes';
   const fallbackTitle = basenameFromPath(sourcePath);
   const displayTitle = title || fallbackTitle || 'Untitled board';
@@ -237,7 +250,10 @@ const Masthead: React.FC<{ store: BoardStore; sourcePath?: string }> = ({
       </div>
       <div className="kp-masthead-meta">
         <div className="kp-row">
-          <span><strong>{cardCount}</strong> {cardLabel}</span>
+          <span>
+            <strong>{shownCardCount}</strong>
+            {filterActive ? <> of {cardCount}</> : null} {cardLabel}
+          </span>
           <span className="kp-dot" aria-hidden="true" />
           <span><strong>{laneCount}</strong> {laneLabel}</span>
           {editedAt ? (
@@ -317,13 +333,23 @@ const DASHBOARD_OPEN_EVENT = 'kanban-pro:open-dashboard';
 const VIEWS_OPEN_EVENT = 'kanban-pro:open-views';
 const SEARCH_OPEN_EVENT = 'kanban-pro:open-search';
 const VIEWS_PICKER_EVENT = 'kanban-pro:open-views-picker';
-const OPEN_DASHBOARD_COMMAND = 'kanban-pro:kanban-pro-open-dashboard';
+// Obsidian namespaces commands as `<manifestId>:<commandId>`. The manifest
+// id is `kanban-pro-boards` (NOT the view type `kanban-pro`); the old
+// hard-coded `kanban-pro:…` prefix never resolved, so the toolbar button
+// silently no-op'd. Derive the prefix from the shared constant.
+const OPEN_DASHBOARD_COMMAND = `${KANBAN_PRO_PLUGIN_ID}:kanban-pro-open-dashboard`;
 
 /**
- * Trigger the `Open Dashboard` command. Free and Pro users both land in
- * the same place (a `DashboardView` tab) — the command itself handles
- * the Free-tier paywall rendering, so we no longer route the subnav
- * tab to Settings.
+ * Open the Dashboard. Free and Pro users both land in the same place (a
+ * `DashboardView` tab) — the view handles the Free-tier paywall rendering,
+ * so we no longer route the subnav tab to Settings.
+ *
+ * We try the command first (so a user-assigned hotkey path stays exercised),
+ * but treat ONLY an explicit `true` as success — the private
+ * `executeCommandById` returns `undefined` for an unknown id, which the old
+ * `ok !== false` check mistook for success and swallowed. The window event
+ * is the reliable path: `main.ts` listens for it and calls `openDashboard()`
+ * directly.
  */
 function openDashboardLeaf(app: App): void {
   type CommandsHost = { commands?: { executeCommandById?: (id: string) => boolean | undefined } };
@@ -331,14 +357,10 @@ function openDashboardLeaf(app: App): void {
   const exec = commands?.executeCommandById;
   if (typeof exec === 'function') {
     const ok = exec.call(commands, OPEN_DASHBOARD_COMMAND);
-    if (ok !== false) return;
+    if (ok === true) return;
   }
-  // Fallback for environments where `app.commands` is unavailable (tests,
-  // hosts that locked the private API down). Dispatch the event main.ts
-  // can pick up if it ever registers a listener, and surface a Notice so
-  // the user gets feedback rather than silence.
+  // Reliable fallback — main.ts owns the actual open via this event.
   window.dispatchEvent(new CustomEvent(DASHBOARD_OPEN_EVENT));
-  new Notice('Open Dashboard via the command palette (Kanban Pro: Open Dashboard).');
 }
 
 interface SubnavProps {
@@ -383,6 +405,12 @@ const Subnav: React.FC<SubnavProps> = ({
   // land in the same place.
   const [viewsOpen, setViewsOpen] = React.useState(false);
   const [searchOpen, setSearchOpen] = React.useState(false);
+  // Anchor refs so each popover's outside-click handler ignores clicks on
+  // its own trigger (the trigger owns the open/close toggle). Without this
+  // the trigger click and the capture-phase outside-mousedown race and the
+  // popover gets stuck (P3 — "Views popover won't reopen").
+  const viewsAnchorRef = React.useRef<HTMLDivElement | null>(null);
+  const searchAnchorRef = React.useRef<HTMLDivElement | null>(null);
 
   const onSelect = React.useCallback(
     (m: ViewMode | 'dashboard') => {
@@ -502,7 +530,7 @@ const Subnav: React.FC<SubnavProps> = ({
 
       <div className="kp-subnav-spacer" />
 
-      <div className="kp-popover-anchor">
+      <div className="kp-popover-anchor" ref={viewsAnchorRef}>
         <button
           type="button"
           className={`kp-control${viewsOpen ? ' is-open' : ''}${!isPro ? ' is-pro-locked' : ''}`}
@@ -526,6 +554,7 @@ const Subnav: React.FC<SubnavProps> = ({
           title="Saved Views"
           labelId="kp-views-popover-title"
           anchor="right"
+          ignoreRef={viewsAnchorRef}
         >
           <SavedViewsPicker
             app={app}
@@ -545,7 +574,7 @@ const Subnav: React.FC<SubnavProps> = ({
         </SubnavPopover>
       </div>
 
-      <div className="kp-popover-anchor">
+      <div className="kp-popover-anchor" ref={searchAnchorRef}>
         <button
           type="button"
           className={`kp-control${searchOpen ? ' is-open' : ''}${searchText.trim() ? ' is-active' : ''}`}
@@ -570,6 +599,7 @@ const Subnav: React.FC<SubnavProps> = ({
           title="Search cards"
           labelId="kp-search-popover-title"
           anchor="right"
+          ignoreRef={searchAnchorRef}
         >
           <SearchOverlay
             value={searchText}
@@ -717,6 +747,22 @@ export const BoardRoot: React.FC<BoardRootProps> = ({
   const [detailCardId, setDetailCardId] = React.useState<CardId | null>(null);
   const onOpenDetail = React.useCallback((id: CardId) => setDetailCardId(id), []);
   const onCloseDetail = React.useCallback(() => setDetailCardId(null), []);
+
+  // Time-tracking history drawer (Pro). The card chip's long-press and the
+  // right-rail "Details" button both dispatch `kanban-pro:open-tracking-panel`
+  // — but nothing was listening, so the drawer never opened (P1). Own it here
+  // as a sibling of DetailPanel; BoardRoot already sits inside the
+  // TrackingProvider context, so <TrackingPanel> can reach the store.
+  const [trackingCardId, setTrackingCardId] = React.useState<CardId | null>(null);
+  const onCloseTracking = React.useCallback(() => setTrackingCardId(null), []);
+  React.useEffect(() => {
+    const handler = (ev: Event): void => {
+      const detail = (ev as CustomEvent<{ cardId?: string }>).detail;
+      if (detail?.cardId) setTrackingCardId(detail.cardId);
+    };
+    window.addEventListener('kanban-pro:open-tracking-panel', handler);
+    return () => window.removeEventListener('kanban-pro:open-tracking-panel', handler);
+  }, []);
 
   // Filter and Search state lives on BoardRoot so it survives view-mode
   // switches (Board ↔ Table ↔ List). The filter engine itself comes from
@@ -895,7 +941,12 @@ export const BoardRoot: React.FC<BoardRootProps> = ({
           />
           <main className="kp-root kp-board">
             {banner}
-            <Masthead store={store} sourcePath={sourcePath} />
+            <Masthead
+              store={store}
+              sourcePath={sourcePath}
+              filterActive={filterActive}
+              visibleCardCount={matchCount}
+            />
             <Subnav
               store={store}
               current={mode}
@@ -923,6 +974,8 @@ export const BoardRoot: React.FC<BoardRootProps> = ({
                   readOnly={effectiveReadOnly}
                   sourcePath={sourcePath}
                   onOpenDetail={onOpenDetail}
+                  visibleCardIds={visibleCardIds}
+                  filterActive={filterActive}
                 />
               </ErrorBoundary>
             ) : mode === 'table' ? (
@@ -960,6 +1013,8 @@ export const BoardRoot: React.FC<BoardRootProps> = ({
           onClose={onCloseDetail}
           readOnly={effectiveReadOnly}
         />
+
+        <TrackingPanel cardId={trackingCardId} onClose={onCloseTracking} />
       </DnDProvider>
       </SavedViewsProvider>
     </MarkdownHostProvider>

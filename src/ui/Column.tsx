@@ -23,6 +23,10 @@ export interface ColumnProps {
   readOnly?: boolean;
   sourcePath?: string;
   onOpenDetail: (cardId: CardId) => void;
+  /** Cards passing the active filter — used to show a filtered lane count. */
+  visibleCardIds?: ReadonlySet<CardId>;
+  /** Whether a filter/search is currently narrowing the board. */
+  filterActive?: boolean;
 }
 
 /**
@@ -84,6 +88,8 @@ export const Column: React.FC<ColumnProps> = ({
   readOnly,
   sourcePath,
   onOpenDetail,
+  visibleCardIds,
+  filterActive,
 }) => {
   const title = useLaneTitle(store, laneId);
   const collapsed = useLaneCollapsed(store, laneId);
@@ -91,6 +97,15 @@ export const Column: React.FC<ColumnProps> = ({
   const cardIds = useCardIds(store, laneId);
   const renderGeneration = useRenderGeneration(store);
   const { isDragging } = useDnDState();
+
+  // Lane count shown in the header chip. When a filter is active, count only
+  // the cards in this lane that pass it (the rest are hidden by the
+  // filter CSS) — so the chip agrees with what's on screen rather than
+  // showing the unfiltered total above a single visible card (#6).
+  const displayCount =
+    filterActive && visibleCardIds
+      ? cardIds.reduce((n, id) => (visibleCardIds.has(id) ? n + 1 : n), 0)
+      : cardIds.length;
 
   const scrollRef = React.useRef<HTMLDivElement | null>(null);
   const shouldVirtualize = cardIds.length > VIRTUALIZE_THRESHOLD;
@@ -397,7 +412,14 @@ export const Column: React.FC<ColumnProps> = ({
             {title}
           </h2>
         )}
-        <span className="kp-lane-count" aria-label={`${cardIds.length} cards`}>{cardIds.length}</span>
+        <span
+          className="kp-lane-count"
+          aria-label={
+            filterActive
+              ? `${displayCount} of ${cardIds.length} cards match`
+              : `${cardIds.length} cards`
+          }
+        >{displayCount}</span>
         <div className="kp-spacer" />
         <div className="kp-lane-actions">
           <button

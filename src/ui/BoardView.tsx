@@ -25,6 +25,15 @@ export interface BoardViewProps {
   readOnly?: boolean;
   sourcePath?: string;
   onOpenDetail: (cardId: CardId) => void;
+  /**
+   * Ids of cards currently passing the active filter/search. When a filter is
+   * active, lanes show their VISIBLE count instead of their total so the lane
+   * chip agrees with what's actually rendered (the hidden-cards CSS hides the
+   * rest). Undefined / no active filter → lanes show their full count.
+   */
+  visibleCardIds?: ReadonlySet<CardId>;
+  /** Whether a filter/search is currently narrowing the board. */
+  filterActive?: boolean;
 }
 
 function useLaneIds(store: BoardStore): readonly LaneId[] {
@@ -36,6 +45,8 @@ export const BoardView: React.FC<BoardViewProps> = ({
   readOnly,
   sourcePath,
   onOpenDetail,
+  visibleCardIds,
+  filterActive,
 }) => {
   const laneIds = useLaneIds(store);
 
@@ -72,6 +83,8 @@ export const BoardView: React.FC<BoardViewProps> = ({
             readOnly={readOnly}
             sourcePath={sourcePath}
             onOpenDetail={onOpenDetail}
+            visibleCardIds={visibleCardIds}
+            filterActive={filterActive}
           />
         ))}
         {!readOnly ? (

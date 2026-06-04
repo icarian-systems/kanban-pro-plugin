@@ -480,8 +480,38 @@ export default class KanbanProPlugin extends Plugin {
     // `file-open` + `metadataCache changed`. A microtask fallback
     // covers headless/test hosts where 'resolved' never fires.
     if (!this.settings.hasSeenOnboarding) {
+      // CRITICAL: `metadataCache.on('resolved', ...)` is NOT a one-time
+      // event — it fires every time the cache finishes re-indexing, which
+      // happens after EVERY board write (create board, add card, drag,
+      // toggle a checkbox, rename a lane…). The old `openOnce` guarded only
+      // on `currentOnboardingModal`, so once the user dismissed the modal
+      // the next board edit re-resolved the cache and re-opened it — the
+      // "Welcome modal re-appears on every edit" bug. Fix: (a) bail hard if
+      // the persisted `hasSeenOnboarding` flag is set, and (b) DETACH this
+      // listener the first time it fires so later re-resolves can't wake it.
+      let resolvedRef: unknown = null;
+      const detachResolved = (): void => {
+        if (!resolvedRef) return;
+        const mc = this.app.metadataCache as unknown as {
+          offref?: (ref: unknown) => void;
+        };
+        try {
+          mc.offref?.(resolvedRef);
+        } catch {
+          /* best-effort detach; the hasSeenOnboarding guard is the backstop */
+        }
+        resolvedRef = null;
+      };
       const openOnce = (): void => {
-        if (this.currentOnboardingModal) return;
+        if (this.settings.hasSeenOnboarding || this.currentOnboardingModal) {
+          // Already shown this session, or persisted as seen — never
+          // auto-open again, and make sure the one-shot listener is gone.
+          detachResolved();
+          return;
+        }
+        // First (and only) auto-open. Detach BEFORE opening so a write the
+        // modal itself may trigger can't re-enter this path.
+        detachResolved();
         this.openOnboardingModal('auto');
       };
       // `metadataCache.on('resolved', ...)` is not in the published
@@ -494,14 +524,13 @@ export default class KanbanProPlugin extends Plugin {
       };
       if (typeof mcEvents.on === 'function') {
         try {
-          const ref = mcEvents.on('resolved', openOnce);
-          this.registerEvent(ref as Parameters<Plugin['registerEvent']>[0]);
+          resolvedRef = mcEvents.on('resolved', openOnce);
+          this.registerEvent(resolvedRef as Parameters<Plugin['registerEvent']>[0]);
         } catch {
-          // Cache may have already resolved (Obsidian fires 'resolved'
-          // exactly once); fall through to the microtask path below.
+          // Cache may have already resolved; fall through to the microtask.
         }
       }
-      // Always-fire fallback. Idempotent via `currentOnboardingModal`.
+      // Always-fire fallback. Idempotent via the guards in `openOnce`.
       queueMicrotask(openOnce);
     }
 
@@ -541,6 +570,21 @@ export default class KanbanProPlugin extends Plugin {
     window.addEventListener('kanban-pro:open-pro-settings', onOpenProSettings);
     this.register(() =>
       window.removeEventListener('kanban-pro:open-pro-settings', onOpenProSettings),
+    );
+
+    // `kanban-pro:open-dashboard` — dispatched by the board subnav's
+    // Dashboard tab. The subnav can't reliably reach our command via
+    // `app.commands.executeCommandById` (the private API returns `undefined`
+    // for an unknown id, and the id must be prefixed with the manifest id,
+    // not the view type) — so the toolbar button silently did nothing. We
+    // own the open here instead; `openDashboard()` renders the Free-tier
+    // paywall itself, so Free and Pro both land in the right place.
+    const onOpenDashboard = (): void => {
+      void this.openDashboard();
+    };
+    window.addEventListener('kanban-pro:open-dashboard', onOpenDashboard);
+    this.register(() =>
+      window.removeEventListener('kanban-pro:open-dashboard', onOpenDashboard),
     );
 
     // Audited — no plugin-side cause for duplicate Welcome tabs;
@@ -770,6 +814,9 @@ export default class KanbanProPlugin extends Plugin {
         },
         onDismiss: async () => {
           this.currentOnboardingModal = null;
+          // The flag is normally already set eagerly below; this is the
+          // backstop for the `auto` path in case eager persistence was
+          // skipped (e.g. a host where saveSettings rejected on open).
           if (trigger === 'auto' && !this.settings.hasSeenOnboarding) {
             this.settings.hasSeenOnboarding = true;
             await this.saveSettings();
@@ -778,6 +825,14 @@ export default class KanbanProPlugin extends Plugin {
       },
     );
     this.currentOnboardingModal = modal;
+    // Persist "seen" eagerly for the auto path so a board write mid-
+    // onboarding (or a crash before dismissal) can never make the modal
+    // auto-reappear next session. The `command` path leaves the flag alone
+    // so power users can re-read getting-started without consuming it.
+    if (trigger === 'auto' && !this.settings.hasSeenOnboarding) {
+      this.settings.hasSeenOnboarding = true;
+      void this.saveSettings();
+    }
     modal.open();
   }
 
@@ -1020,6 +1075,13 @@ export default class KanbanProPlugin extends Plugin {
       new Notice('Calendar export failed — see console.');
       return;
     }
+    // `exportICS` returns '' when no card carries a due date. Surface that
+    // clearly instead of writing an empty file — the old silent-no-op was
+    // the user-visible half of the broken export (P2).
+    if (!ics.trim()) {
+      new Notice('Calendar export: no dated cards on this board to export.');
+      return;
+    }
     const boardPath = view.file?.path;
     if (!boardPath) {
       new Notice('Calendar export: board has no file path.');
@@ -1064,8 +1126,8 @@ export default class KanbanProPlugin extends Plugin {
       new Notice('Open Settings → Kanban Pro → Pro to activate.');
       return;
     }
-    // Pre-select Pro pane BEFORE display() runs. If the dialog
-    // is already mounted, openTo() also flips the active pane live.
+    // Pre-select Pro pane BEFORE display() runs (covers the case where
+    // `setting.open()` mounts straight onto our tab).
     this.settingsTab?.openTo('pro');
     try {
       setting.open();
@@ -1075,6 +1137,13 @@ export default class KanbanProPlugin extends Plugin {
       new Notice('Open Settings → Kanban Pro → Pro to activate.');
       return;
     }
+    // Re-assert AFTER the tab is mounted. `openTabById` runs `display()`
+    // (and a `hide()` on the previously-active tab resets `initialPaneIndex`
+    // back to General/0), so a single pre-open `openTo` could land on
+    // General — the "Activate lands on the wrong tab" bug. Now that the
+    // pane is on screen, `openTo('pro')` uses the live `switchActive` hatch
+    // to force the Pro pane regardless of what `display()` rendered first.
+    this.settingsTab?.openTo('pro');
     // Best-effort: ask the Pro pane to focus its license-token input.
     // The pane registers a window listener for this event while it's
     // rendered; with openTo('pro') above, the pane is rendered by the

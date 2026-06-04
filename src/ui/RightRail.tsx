@@ -4,8 +4,10 @@
  * try to inject into the workspace right pane).
  *
  * Sections:
- *   - Saved Views (Pro) — default 4 filters: Due this week, Assigned to me,
- *                         Overdue, Recurring. Free users get a small upsell.
+ *   - Smart Views (Pro) — built-in 4 filters: Due this week, Assigned to me,
+ *                         Overdue, Recurring. (User-created "Saved Views" live
+ *                         in the toolbar popover — different concept.) Free
+ *                         users get a small upsell.
  *   - Active Timer (Pro) — read from the optional TrackingStore on context.
  *   - Linked Notes (Free) — backlinks resolved via `app.metadataCache`.
  *   - Integrations (Pro) — GitHub + Calendar status pills (Roadmap stub).
@@ -24,6 +26,7 @@ import {
   DEFAULT_SAVED_VIEW_DEFS,
   resolveDefaultSavedViewFilter,
 } from '@/ui/savedViewsDefaults';
+import { PRO_FEATURES_SENTENCE } from '@/shared/proCopy';
 
 export interface RightRailProps {
   app?: App;
@@ -127,7 +130,11 @@ const SavedViewsSection: React.FC<{
   }, [activeSavedViewId]);
   return (
     <section className="kp-rail-section">
-      <div className="kp-rail-h">Saved Views</div>
+      {/* "Smart Views" — these are the built-in, always-available filters
+          (Due this week, Overdue, …). Deliberately NOT "Saved Views": that
+          name belongs to the toolbar popover for USER-created saved filters.
+          Two different concepts; same name was confusing (P5). */}
+      <div className="kp-rail-h">Smart Views</div>
       {DEFAULT_SAVED_VIEW_DEFS.map((v) => {
         // The right rail shows a count next to each
         // saved-view entry, rendered as a `<span class="ct">N</span>`.
@@ -361,7 +368,7 @@ const ExploreProSection: React.FC = () => (
     <div className="kp-rail-h">Explore Pro</div>
     <PaywallCard
       feature="Kanban Pro"
-      description="Saved views, recurrence, time tracking, and integrations — all in Kanban Pro."
+      description={PRO_FEATURES_SENTENCE}
       ctaLabel="Activate"
       compact
       layout="stack"

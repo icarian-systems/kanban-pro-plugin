@@ -130,6 +130,23 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({ cardId, store, onClose
     }
   }, [tagsJoined]);
 
+  // Recurrence input — same local-draft discipline as Tags. The field used
+  // to be controlled directly by the stored value AND `.trim()` the input on
+  // every keystroke, so a trailing space (typing "every Monday") was stripped
+  // the instant it was typed and the next character appended to "every" —
+  // producing "everyMonday" (P4). Keep a raw draft locally; commit a cleaned
+  // value to the store; re-sync the draft only when the stored value changes
+  // externally (card switch, undo, outside edit).
+  const recurValue = card?.meta.fields?.rrule ?? card?.meta.fields?.repeats ?? '';
+  const [recurDraft, setRecurDraft] = React.useState<string>(recurValue);
+  const lastSyncedRecurRef = React.useRef<string>(recurValue);
+  React.useEffect(() => {
+    if (recurValue !== lastSyncedRecurRef.current) {
+      lastSyncedRecurRef.current = recurValue;
+      setRecurDraft(recurValue);
+    }
+  }, [recurValue]);
+
   if (!cardId || !card) return null;
 
   const onClickBackdrop = (e: React.MouseEvent) => {
@@ -333,9 +350,13 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({ cardId, store, onClose
                 type="text"
                 className="kp-input"
                 placeholder="e.g. every Monday or FREQ=WEEKLY;BYDAY=MO"
-                value={card.meta.fields?.rrule ?? card.meta.fields?.repeats ?? ''}
+                value={recurDraft}
                 onChange={(e) => {
-                  const next = (e.target.value || '').trim();
+                  // Keep the raw text for display (spaces intact); commit a
+                  // cleaned value to the store.
+                  const raw = e.target.value;
+                  setRecurDraft(raw);
+                  const next = raw.trim();
                   const fields = { ...(card.meta.fields ?? {}) };
                   // The recurrence engine reads `fields.rrule` (RFC 5545) and
                   // `fields.repeats` (natural language). Route the input to the
@@ -352,7 +373,17 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({ cardId, store, onClose
                       fields.repeats = next;
                     }
                   }
+                  // Record what we committed so the controlled re-render's
+                  // sync effect doesn't clobber the user's in-progress draft.
+                  lastSyncedRecurRef.current = fields.rrule ?? fields.repeats ?? '';
                   patchMeta({ meta: { ...card.meta, fields } });
+                }}
+                onBlur={() => {
+                  // Normalise the visible text to the stored (trimmed) value
+                  // once the field loses focus, so a stray trailing space
+                  // disappears after the user is done typing.
+                  const normalized = card.meta.fields?.rrule ?? card.meta.fields?.repeats ?? '';
+                  if (normalized !== recurDraft) setRecurDraft(normalized);
                 }}
                 disabled={readOnly}
               />
@@ -361,6 +392,7 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({ cardId, store, onClose
                 feature="Recurrence"
                 description="Schedule cards to repeat daily, weekly, monthly, or on a custom RRULE. Completed cards spawn the next occurrence automatically."
                 compact
+                layout="stack"
               />
             )}
           </section>

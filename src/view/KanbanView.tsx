@@ -49,6 +49,7 @@ import {
 import { createSaveQueue, type SaveQueue } from '@/core/saveQueue';
 import { createUndoStack, type UndoStack } from '@/core/undo';
 import { hashString } from '@/shared/hash';
+import { KANBAN_PRO_PLUGIN_ID } from '@/shared/pluginMeta';
 import { licenseFSM } from '@/pro/license/state';
 import { log } from '@/shared/log';
 import { createCleanupChecklist, type CleanupChecklist } from './cleanupChecklist';
@@ -467,8 +468,8 @@ export class KanbanView extends TextFileView {
     // wrapper that subscribes only to readOnly + errorMessage.
     //
     // SavedViewStore lookup: plugin-owned per `main.ts`. We probe through
-    // `app.plugins.plugins['kanban-pro']` so this file doesn't import the
-    // plugin class (which would invert the module graph). When the lookup
+    // `app.plugins.plugins[KANBAN_PRO_PLUGIN_ID]` so this file doesn't import
+    // the plugin class (which would invert the module graph). When the lookup
     // fails (tests that mount KanbanView in isolation), BoardRoot
     // tolerates `savedViewStore = null` and falls back to the
     // "no saved views yet" empty state — the right-rail chips still work
@@ -933,7 +934,7 @@ function pluginSavedViewStore(
     };
   };
   const reg = (app as unknown as PluginsHost).plugins?.plugins;
-  const plugin = reg?.['kanban-pro'];
+  const plugin = reg?.[KANBAN_PRO_PLUGIN_ID];
   return plugin?.savedViews ?? null;
 }
 
@@ -952,7 +953,7 @@ function pluginTrackingStore(
     };
   };
   const reg = (app as unknown as PluginsHost).plugins?.plugins;
-  const plugin = reg?.['kanban-pro'];
+  const plugin = reg?.[KANBAN_PRO_PLUGIN_ID];
   return plugin?.tracking ?? null;
 }
 

@@ -25,6 +25,7 @@
  * cost of spinning up a root would dwarf the content.
  */
 import { App, Modal } from 'obsidian';
+import { PRO_FEATURES_LIST } from '@/shared/proCopy';
 
 export type OnboardingVariant = 'fresh' | 'migrator';
 
@@ -176,7 +177,10 @@ export class OnboardingModal extends Modal {
     const footer = host.createDiv({ cls: 'kp-onboarding-footer' });
     footer.createSpan({
       cls: 'kp-onboarding-footer-text',
-      text: 'Pro unlocks Recurrence and Saved Views. Free is fully featured.',
+      // Non-contradictory copy: the core board is free; Pro is the optional
+      // add-on. (Old line both promised "Free is fully featured" AND listed
+      // Pro-only unlocks, and the list had drifted from the other surfaces.)
+      text: `The core board is free. Pro adds ${PRO_FEATURES_LIST}.`,
     });
     const learnMore = footer.createEl('button', {
       cls: 'kp-onboarding-footer-link',

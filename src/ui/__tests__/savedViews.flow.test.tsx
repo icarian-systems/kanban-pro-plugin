@@ -135,6 +135,48 @@ describe('Saved Views picker', () => {
     expect(container.querySelector('.kp-views-picker')).toBeTruthy();
   });
 
+  it('clicking Views again closes it, and it reopens — not stuck (P3)', () => {
+    const { container, getByLabelText } = renderBoard();
+    const viewsBtn = getByLabelText('Open views') as HTMLButtonElement;
+    // Open.
+    fireEvent.click(viewsBtn);
+    expect(container.querySelector('.kp-views-picker')).toBeTruthy();
+    // Click again — simulate a real pointer: the capture-phase outside
+    // `mousedown` (which SubnavPopover watches) THEN the trigger `click`.
+    // Before the ignoreRef fix these raced: mousedown closed it, then the
+    // toggle reopened it, leaving the popover stuck so it could never be
+    // closed/reopened cleanly. Now the trigger owns the toggle.
+    fireEvent.mouseDown(viewsBtn);
+    fireEvent.click(viewsBtn);
+    expect(container.querySelector('.kp-views-picker')).toBeFalsy();
+    // And it reopens on the next click.
+    fireEvent.mouseDown(viewsBtn);
+    fireEvent.click(viewsBtn);
+    expect(container.querySelector('.kp-views-picker')).toBeTruthy();
+  });
+
+  it('lane counts and the masthead total reflect the active filter (#6)', async () => {
+    const { container } = renderBoard();
+    // Fixture: 4 cards across 3 lanes; 2 carry #bug (Inbox + Doing).
+    await act(async () => {
+      window.dispatchEvent(
+        new CustomEvent('kanban-pro:apply-saved-view', {
+          detail: { id: 'test-bugs', filter: { tags: ['bug'] }, name: 'Bugs only' },
+        }),
+      );
+    });
+    await waitFor(() => {
+      // Masthead headline shows the filtered count "2 of 4", not "4".
+      const meta = container.querySelector('.kp-masthead-meta');
+      expect(meta?.textContent ?? '').toContain('2 of 4');
+    });
+    // Per-lane chips show the VISIBLE count and sum to the 2 matches,
+    // instead of the unfiltered per-lane totals.
+    const laneCounts = Array.from(container.querySelectorAll('.kp-lane-count'))
+      .map((el) => Number(el.textContent));
+    expect(laneCounts.reduce((a, b) => a + b, 0)).toBe(2);
+  });
+
   it('shows the empty-state message when no saved views exist', () => {
     const { container, getByLabelText } = renderBoard();
     fireEvent.click(getByLabelText('Open views'));

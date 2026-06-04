@@ -11,7 +11,11 @@ import { licenseFSM } from '@/pro/license/state';
 import { openCheckout } from '@/pro/license/checkout';
 import type { ProGate } from '@/pro/license/state';
 import { log } from '@/shared/log';
+import { PRO_FEATURES_LIST } from '@/shared/proCopy';
 import type { SettingsHost, PaneDisposerRegister } from '../SettingsTab';
+
+/** Sentence-cased "Unlock <features>." for the purchase CTA description. */
+const UNLOCK_DESC = `Unlock ${PRO_FEATURES_LIST}.`;
 
 /**
  * Custom DOM event the plugin's `main.ts` dispatches when the
@@ -113,7 +117,7 @@ export function renderProPane(
   root.appendChild(purchaseBlock);
   new Setting(purchaseBlock)
     .setName('Get Kanban Pro')
-    .setDesc('Unlock recurrence, saved views, time tracking, calendar, and the dashboard.')
+    .setDesc(UNLOCK_DESC)
     .addButton((b: unknown) => {
       const btn = b as {
         setButtonText: (s: string) => unknown;

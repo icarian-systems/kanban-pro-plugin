@@ -39,6 +39,16 @@ export interface SubnavPopoverProps {
    * trigger; `right` aligns the panel's right edge. Defaults to `left`.
    */
   anchor?: 'left' | 'right';
+  /**
+   * Element whose clicks the outside-close handler must IGNORE — typically
+   * the trigger button (or the `.kp-popover-anchor` wrapping it). Without
+   * this, clicking the trigger while the popover is open fires BOTH the
+   * capture-phase outside-`mousedown` (→ onClose) AND the trigger's own
+   * toggle `onClick` — they race, and the popover ends up stuck (the
+   * "Views popover won't reopen" bug). Excluding the trigger lets its
+   * onClick own the toggle cleanly.
+   */
+  ignoreRef?: React.RefObject<HTMLElement | null>;
 }
 
 export const SubnavPopover: React.FC<SubnavPopoverProps> = ({
@@ -49,6 +59,7 @@ export const SubnavPopover: React.FC<SubnavPopoverProps> = ({
   children,
   className,
   anchor = 'left',
+  ignoreRef,
 }) => {
   const panelRef = React.useRef<HTMLDivElement>(null);
 
@@ -60,11 +71,10 @@ export const SubnavPopover: React.FC<SubnavPopoverProps> = ({
       if (!panel) return;
       const target = e.target as Node | null;
       if (target && panel.contains(target)) return;
-      // Allow the trigger button to handle its own click (toggle-off).
-      // We just close — the trigger's click handler will then re-open
-      // if appropriate. Using `mousedown` (capture) gets us in before
-      // the click event fires, but we don't preventDefault so trigger
-      // clicks still register.
+      // Clicks on the trigger (or its wrapping anchor) are owned by the
+      // trigger's own toggle handler — DON'T close here, or we race the
+      // trigger's onClick and the popover gets stuck open/closed.
+      if (target && ignoreRef?.current && ignoreRef.current.contains(target)) return;
       onClose();
     };
     const onKey = (e: KeyboardEvent) => {
@@ -79,7 +89,7 @@ export const SubnavPopover: React.FC<SubnavPopoverProps> = ({
       document.removeEventListener('mousedown', onPointerDown, true);
       window.removeEventListener('keydown', onKey);
     };
-  }, [open, onClose]);
+  }, [open, onClose, ignoreRef]);
 
   if (!open) return null;
 
