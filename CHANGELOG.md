@@ -4,6 +4,22 @@ All notable changes to Kanban Pro are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.0.7] — 2026-06-03
+
+Follow-up patch to the 1.0.6 "+ Add card" fix.
+
+### Fixed
+
+- **"+ Add card" reliably opens the inline editor on the new card.** The
+  previous fix still depended on a `kanban-pro:focus-new-card` window event
+  dispatched via `setTimeout(0)` from the click handler. Because Column
+  re-renders synchronously (via `useSyncExternalStore`) but the new card's
+  `useEffect` listener registers only after paint, the event fired before any
+  listener existed and was lost — so the new card stayed blank and looked
+  invisible. The creation intent is now passed to the card as an
+  `autoFocusOnMount` prop, evaluated synchronously at render time, so the
+  card's mount effect opens the editor every time.
+
 ## [1.0.6] — 2026-06-03
 
 First-time-user QA pass. No new features — this release makes existing
