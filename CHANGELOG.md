@@ -4,6 +4,51 @@ All notable changes to Kanban Pro are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.0.6] — 2026-06-03
+
+First-time-user QA pass. No new features — this release makes existing
+(advertised) features actually work and removes a pervasive interruption.
+
+### Fixed
+
+- **Welcome modal no longer re-appears on every edit.** The first-run
+  onboarding modal was wired to the metadata-cache `resolved` event, which
+  fires after *every* board write (create board, add card, drag, toggle a
+  checkbox, rename a lane), so it popped up again after almost any action.
+  It now auto-opens at most once per install: the listener is detached after
+  its first fire and gated on a persisted `hasSeenOnboarding` flag.
+- **"+ Add card" works again.** With the modal no longer stealing focus from
+  the inline editor mid-add, adding a card no longer commits a blank,
+  invisible placeholder.
+- **Time tracking is reachable.** A plugin-registry lookup used the wrong id
+  (`kanban-pro` instead of the manifest id `kanban-pro-boards`), so the
+  tracking store resolved to `null` and the timer pill never rendered. The
+  pill now appears on cards, and long-press / the right-rail "Details" button
+  open the time-tracking history drawer (which was never mounted).
+- **Calendar (.ics) export produces output.** Export only recognised the
+  `@{date}` form and skipped cards dated with `[due:: …]` or `📅`, so boards
+  full of dated cards exported an empty calendar. It now resolves every
+  due-date syntax and shows a clear notice when a board has no dated cards.
+- **Toolbar "Dashboard" button opens the Dashboard.** It dispatched a command
+  whose id used the wrong prefix and swallowed the failure; the open is now
+  handled directly by the plugin.
+- **Pro CTAs land on the Pro settings pane**, not General.
+- **Saved Views popover reliably reopens** (the trigger click no longer races
+  the outside-click close), so custom filters can be saved as named views.
+- **Recurrence field keeps spaces.** Typing "every Monday" no longer collapses
+  to "everyMonday".
+
+### Changed
+
+- **Right-rail built-in filters renamed "Smart Views"** to disambiguate them
+  from the toolbar's user-created "Saved Views".
+- **Pro feature list unified** across the onboarding modal, the right-rail
+  upsell, and the Pro settings pane (and the contradictory "Free is fully
+  featured" line was reworded).
+- **Card details paywall no longer clips** at the panel's right edge.
+- **Lane and board counts respect the active filter** (e.g. "2 of 4") instead
+  of showing unfiltered totals above a narrowed board.
+
 ## [1.0.5] — 2026-06-03
 
 ### Changed
