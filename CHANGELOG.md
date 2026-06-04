@@ -4,6 +4,28 @@ All notable changes to Kanban Pro are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.0.8] — 2026-06-03
+
+Follow-up patch to the 1.0.6/1.0.7 "+ Add card" fixes. The earlier patches
+chased an inline-editor focus race; the real cause was that the new card was
+hidden by `display:none` before focus could ever matter.
+
+### Fixed
+
+- **"+ Add card" on a board with empty placeholders no longer creates
+  invisible cards.** The board-level filter-visibility CSS (`HiddenCardsStyle`)
+  hides any card present in `totalCardIds` but absent from `visibleCardIds`.
+  `visibleCardIds` was derived from `applyFilter`, which excludes empty
+  placeholder cards — *even when no filter is active*. So the instant
+  "+ Add card" created an empty placeholder, the board injected
+  `[data-card-id="…"]{display:none !important}` for it: the card existed and
+  bumped the lane count, but was invisible. Being `display:none`, it could not
+  take editor focus or fire its discard-on-blur, so empty placeholders silently
+  piled up (the lane chip climbing "8", "9"… over an empty-looking lane).
+  Placeholder cards are now always included in the visibility set — they are
+  transient edit targets with no content to match a filter yet — while
+  saved-view and masthead counts remain content-only.
+
 ## [1.0.7] — 2026-06-03
 
 Follow-up patch to the 1.0.6 "+ Add card" fix.
