@@ -889,6 +889,21 @@ export const BoardRoot: React.FC<BoardRootProps> = ({
       if (search) merged.text = search;
       const matches = applyFilter(board, isFilterEmpty(filter, searchText) ? undefined : merged);
       const visible = new Set<CardId>(matches.map((m) => m.card.id));
+      // Placeholder cards (empty text) are excluded by `applyFilter` so they
+      // never inflate saved-view counts before the user types anything. But
+      // `HiddenCardsStyle` hides every card in `total` that isn't in this set
+      // via `display:none` — so excluding placeholders here makes a brand-new
+      // "+ Add card" card invisible the instant it's created (and, being
+      // display:none, it can't take editor focus or fire its discard-on-blur,
+      // so empty placeholders silently pile up — the lane count climbs while
+      // the lane looks empty). They are transient edit targets with no content
+      // to match a filter yet, so they must always render: add them back to
+      // the visibility set (but NOT to `matchCount`, which stays content-only).
+      for (const lane of board.lanes) {
+        for (const card of lane.cards) {
+          if (card.text.trim() === '') visible.add(card.id);
+        }
+      }
       // Compute one count per
       // pre-seeded saved view so the rail chips render real numbers. We
       // count zero for views whose resolver returns an empty filter — that
@@ -909,7 +924,9 @@ export const BoardRoot: React.FC<BoardRootProps> = ({
         availableAssignees: Array.from(assigneeSet).sort(),
         visibleCardIds: visible,
         totalCardIds: total,
-        matchCount: visible.size,
+        // Content-only count for the masthead "X of Y" — placeholders are
+        // added to `visible` for rendering but must not be counted as matches.
+        matchCount: matches.length,
         savedViewCounts: viewCounts,
       };
     }, [fingerprint, store, filter, searchText]);
