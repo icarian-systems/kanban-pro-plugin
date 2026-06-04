@@ -133,25 +133,45 @@ export const Column: React.FC<ColumnProps> = ({
   // cancels.
   const pendingPlaceholdersRef = React.useRef<Set<string>>(new Set());
 
+  // The card id that should auto-focus its inline editor on mount.
+  // Using a ref (not state) means the value is written synchronously inside
+  // the click handler and is visible to the *same* render that adds the new
+  // Card to the list — no extra render cycle needed.
+  //
+  // Why not `kanban-pro:focus-new-card` window events?
+  // `useSyncExternalStore` makes Column re-render synchronously when the
+  // store updates, but `useEffect` is passive (runs after the browser
+  // paint). The old `window.setTimeout(() => dispatchEvent, 0)` was queued
+  // *inside* the click handler — before React started re-rendering — so it
+  // fired as the very next macrotask, before the new Card's `useEffect` had
+  // registered its listener. The event was lost and the editor never opened.
+  // Passing the intent as a prop side-steps the race entirely: it's
+  // evaluated synchronously at render time, and Card.tsx's mount `useEffect`
+  // fires reliably after the card is in the DOM.
+  const pendingFocusRef = React.useRef<string | null>(null);
+
   const onAddCard = React.useCallback(() => {
     if (readOnly) return;
     const newId = store.addCard?.(laneId);
-    // after creating the placeholder card, broadcast its id so the
-    // matching <Card> can switch itself into editing mode on the next render.
-    // Using a window event keeps Card.tsx independent of Column's local
-    // state and avoids prop-drilling a "focus-this-id" flag through every
-    // card. Card.tsx owns the listener (and its cleanup).
     if (newId) {
       pendingPlaceholdersRef.current.add(newId);
-      // Defer to next tick — gives the store an opportunity to commit and
-      // the new <Card> a chance to mount before we ask it to enter editing.
-      window.setTimeout(() => {
-        window.dispatchEvent(
-          new CustomEvent('kanban-pro:focus-new-card', { detail: { cardId: newId } }),
-        );
-      }, 0);
+      // Signal which card should auto-focus. The ref is read synchronously
+      // during Column's next render (triggered by the store update above),
+      // so the new <Card> receives autoFocusOnMount=true on its very first
+      // render. Card clears the ref via onAutoFocusTaken once it has
+      // consumed it.
+      pendingFocusRef.current = newId;
     }
   }, [laneId, readOnly, store]);
+
+  // Called by Card after it has consumed its autoFocusOnMount signal.
+  // Clears the ref so subsequent re-renders of the same card don't
+  // inadvertently re-enter editing mode.
+  const onAutoFocusTaken = React.useCallback((cardId: string) => {
+    if (pendingFocusRef.current === cardId) {
+      pendingFocusRef.current = null;
+    }
+  }, []);
 
   // InlineEditor broadcasts this event when its blur/cancel path sees
   // both an empty initial value AND an empty current value (i.e. user
@@ -505,6 +525,8 @@ export const Column: React.FC<ColumnProps> = ({
                       readOnly={readOnly}
                       sourcePath={sourcePath}
                       onOpenDetail={onOpenDetail}
+                      autoFocusOnMount={pendingFocusRef.current === cardId}
+                      onAutoFocusTaken={onAutoFocusTaken}
                     />
                   </div>
                 );
@@ -523,6 +545,8 @@ export const Column: React.FC<ColumnProps> = ({
                 readOnly={readOnly}
                 sourcePath={sourcePath}
                 onOpenDetail={onOpenDetail}
+                autoFocusOnMount={pendingFocusRef.current === cardId}
+                onAutoFocusTaken={onAutoFocusTaken}
               />
             ))}
           </ol>

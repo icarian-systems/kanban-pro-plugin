@@ -29,6 +29,30 @@ export interface CardProps {
   /** Path of the source file; passed to MarkdownReadView for link resolution. */
   sourcePath?: string;
   onOpenDetail: (cardId: CardId) => void;
+  /**
+   * When true, the card enters editing mode immediately on mount. Set by
+   * Column.tsx for the card it just created via "+ Add card", replacing the
+   * previous `kanban-pro:focus-new-card` window-event approach.
+   *
+   * Why not an event? `useSyncExternalStore` makes Column re-render
+   * synchronously when the store updates, but `useEffect` is passive — it
+   * runs after the browser paint, not during the commit phase. The old
+   * `window.setTimeout(() => dispatchEvent, 0)` was queued *before* React
+   * started re-rendering (inside the click handler), so it fired as the very
+   * next macrotask — before the new Card's `useEffect` had registered its
+   * listener. The event was lost and the inline editor never opened.
+   *
+   * Passing the intent as a prop is evaluated synchronously at render time,
+   * so the new Card always sees `autoFocusOnMount=true` on its first
+   * (mount) render, and its `useEffect([], [])` fires reliably after mount.
+   */
+  autoFocusOnMount?: boolean;
+  /**
+   * Called by the card after it has consumed `autoFocusOnMount` so that
+   * Column can clear its `pendingFocusRef` and avoid re-triggering on
+   * subsequent renders of the same card.
+   */
+  onAutoFocusTaken?: (cardId: string) => void;
 }
 
 function useCard(store: BoardStore, cardId: CardId): CardModel | undefined {
@@ -246,6 +270,8 @@ export const Card: React.FC<CardProps> = ({
   readOnly = false,
   sourcePath,
   onOpenDetail,
+  autoFocusOnMount = false,
+  onAutoFocusTaken,
 }) => {
   const card = useCard(store, cardId);
   const [editing, setEditing] = React.useState(false);
@@ -297,23 +323,24 @@ export const Card: React.FC<CardProps> = ({
     };
   }, []);
 
-  // focus the inline editor when Column.tsx broadcasts that this card
-  // was just created. The event carries the new cardId; we match against
-  // our own id and flip into editing mode if equal. Cleanup is mandatory
-  // (no global listener left behind on unmount).
+  // Auto-focus: enter editing mode immediately on mount when Column.tsx has
+  // flagged this card as the one it just created. Empty-deps so it runs once
+  // (mount only) — `autoFocusOnMount` is a creation-time signal, not a
+  // reactive value. We notify Column via `onAutoFocusTaken` so it can clear
+  // its `pendingFocusRef` and avoid re-triggering on any later re-render of
+  // the same card.
+  //
+  // This replaces the previous `kanban-pro:focus-new-card` window-event
+  // mechanism which suffered a macrotask race: `setTimeout(0)` (queued
+  // inside the click handler) fired before the new Card's `useEffect` had
+  // registered the event listener, so the event was always missed.
   React.useEffect(() => {
-    if (readOnly) return;
-    const onFocusNew = (e: Event) => {
-      const detail = (e as CustomEvent<{ cardId?: string }>).detail;
-      if (detail?.cardId === cardId) {
-        // async event handler; component may have unmounted between
-        // the dispatch and our listener firing. Skip setState if so.
-        if (mountedRef.current) setEditing(true);
-      }
-    };
-    window.addEventListener('kanban-pro:focus-new-card', onFocusNew);
-    return () => window.removeEventListener('kanban-pro:focus-new-card', onFocusNew);
-  }, [cardId, readOnly]);
+    if (autoFocusOnMount && !readOnly && mountedRef.current) {
+      setEditing(true);
+      onAutoFocusTaken?.(cardId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // mount-only; autoFocusOnMount is intentionally not a dep
 
   const onClick = React.useCallback(
     (e: React.MouseEvent) => {

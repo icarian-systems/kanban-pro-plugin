@@ -182,40 +182,61 @@ describe('Card', () => {
   });
 
   // ────────────────────────────────────────────────────────────────────
-  // mountedRef guard against React #185 on async setState
+  // autoFocusOnMount — prop-based replacement for the old window-event
+  // focus mechanism. The event approach suffered a macrotask race:
+  // setTimeout(0) in Column.tsx fired before Card's useEffect had
+  // registered the kanban-pro:focus-new-card listener. The prop is
+  // evaluated synchronously at render time, so the mount useEffect
+  // always fires after the card is in the DOM.
   // ────────────────────────────────────────────────────────────────────
-  it('late focus-new-card event after unmount produces no React warnings', () => {
-    // Real timers needed: the event is dispatched synchronously through
-    // window, not via the timer queue.
+  it('autoFocusOnMount=true enters editing mode immediately on mount', () => {
     vi.useRealTimers();
-    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-    const { store } = makeStore(makeCard({ id: 'c-late' }));
-    const { unmount } = render(<Harness store={store} onOpenDetail={() => {}} />);
-
-    // Pre-unmount event — should land normally.
-    act(() => {
-      window.dispatchEvent(
-        new CustomEvent('kanban-pro:focus-new-card', { detail: { cardId: 'c-late' } }),
-      );
-    });
-    unmount();
-
-    // Post-unmount event — must NOT setState on the gone Card.
-    act(() => {
-      window.dispatchEvent(
-        new CustomEvent('kanban-pro:focus-new-card', { detail: { cardId: 'c-late' } }),
-      );
-    });
-
-    const reactWarnings = errorSpy.mock.calls.filter((call) =>
-      String(call[0] ?? '').match(
-        /Can't perform a React state update on an unmounted component|Cannot update a component|Warning: setState/i,
-      ),
+    const { store } = makeStore(makeCard({ id: 'c-autofocus', text: '' }));
+    // Render a minimal harness that passes autoFocusOnMount to the Card.
+    const HarnessWithFocus = () => (
+      <Card
+        cardId="c-autofocus"
+        laneId="lane-a"
+        index={0}
+        store={store}
+        readOnly={false}
+        onOpenDetail={() => {}}
+        autoFocusOnMount
+      />
     );
-    expect(reactWarnings).toEqual([]);
+    act(() => { render(<HarnessWithFocus />); });
+    // The InlineEditor mounts a div.inline-editor when editing is active.
+    expect(document.querySelector('.inline-editor')).not.toBeNull();
+  });
 
-    errorSpy.mockRestore();
+  it('autoFocusOnMount calls onAutoFocusTaken with the card id', () => {
+    vi.useRealTimers();
+    const { store } = makeStore(makeCard({ id: 'c-taken', text: '' }));
+    const onAutoFocusTaken = vi.fn();
+    const HarnessWithFocus = () => (
+      <Card
+        cardId="c-taken"
+        laneId="lane-a"
+        index={0}
+        store={store}
+        readOnly={false}
+        onOpenDetail={() => {}}
+        autoFocusOnMount
+        onAutoFocusTaken={onAutoFocusTaken}
+      />
+    );
+    act(() => { render(<HarnessWithFocus />); });
+    expect(onAutoFocusTaken).toHaveBeenCalledWith('c-taken');
+  });
+
+  it('autoFocusOnMount=false does not enter editing mode on mount', () => {
+    vi.useRealTimers();
+    const { store } = makeStore(makeCard({ id: 'c-nofocus', text: 'existing' }));
+    act(() => {
+      render(<Harness store={store} onOpenDetail={() => {}} />);
+    });
+    // No editor should be mounted — the card body shows the text instead.
+    expect(document.querySelector('[data-editing="true"]')).toBeNull();
   });
 });
 
